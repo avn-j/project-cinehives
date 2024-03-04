@@ -44,6 +44,17 @@ export default function AccountFormContainer() {
       {formState == FORM_STATE.Register && (
         <div>
           <RegisterForm />
+          <Separator className="mt-10 bg-stone-500" />
+          <div className="flex items-center">
+            <p className="">Already have an account?</p>
+            <Button
+              variant="link"
+              className="px-1 text-base"
+              onClick={handleFormChange}
+            >
+              Login
+            </Button>
+          </div>
         </div>
       )}
     </>
