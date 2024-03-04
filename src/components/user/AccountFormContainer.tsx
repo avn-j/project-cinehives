@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import LoginForm from "./login/LoginForm";
+import RegisterForm from "./register/RegisterForm";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "../ui/button";
 
@@ -28,7 +29,7 @@ export default function AccountFormContainer() {
           <LoginForm />
           <Separator className="mt-2 bg-stone-500" />
           <div className="flex items-center">
-            <p className="">Don't have an account?</p>
+            <p className="">Dont have an account?</p>
             <Button
               variant="link"
               className="px-1 text-base"
@@ -37,6 +38,12 @@ export default function AccountFormContainer() {
               Register an account
             </Button>
           </div>
+        </div>
+      )}
+
+      {formState == FORM_STATE.Register && (
+        <div>
+          <RegisterForm />
         </div>
       )}
     </>

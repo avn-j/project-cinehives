@@ -16,8 +16,12 @@ import { Input } from "@/components/ui/input";
 import { loginFormSchema } from "@/schemas/schemas";
 import { login } from "./actions";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
 
 export default function LoginForm() {
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -27,13 +31,17 @@ export default function LoginForm() {
   });
 
   async function handleSubmit(values: z.infer<typeof loginFormSchema>) {
-    await login(values);
+    setLoading(true);
+    const error = await login(values);
+    setLoading(false);
+
+    if (error) setError(error);
   }
   return (
     <>
       <Separator className="mb-10 bg-stone-500" />
       <h2 className="mb-6 text-4xl font-bold">Sign In</h2>
-
+      <div className="mb-5 text-lg text-red-500">{error}</div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <FormField
@@ -46,6 +54,7 @@ export default function LoginForm() {
                   <FormControl>
                     <Input
                       {...field}
+                      autoComplete="off"
                       type="email"
                       className="focus:ring-primary border-stone-600 bg-stone-900 py-6 text-lg text-white focus:ring-1"
                     />
@@ -65,6 +74,7 @@ export default function LoginForm() {
                   <FormControl>
                     <Input
                       {...field}
+                      autoComplete="off"
                       type="password"
                       className="focus:ring-primary border-stone-600 bg-stone-900 py-6 text-lg text-white focus:ring-1"
                     />
@@ -75,10 +85,11 @@ export default function LoginForm() {
             }}
           />
           <Button
+            disabled={loading}
             type="submit"
             className=" mt-8 w-full py-6 text-lg text-black"
           >
-            Log In
+            {loading ? "Logging in..." : "Log In"}
           </Button>
         </form>
       </Form>
