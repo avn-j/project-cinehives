@@ -6,8 +6,17 @@ import { FaStar } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Movie } from "@/types/types";
 import { popularMovies, friendActivity, user } from "@/utils/test-data";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) {
+    redirect("/");
+  }
+
   return (
     <>
       <Navbar />
@@ -34,7 +43,7 @@ export default function Home() {
           />
         </div>
         <Section>
-          <h2 className="text-primary text-3xl"> Welcome, {user}</h2>
+          <h2 className="text-primary text-3xl"> Welcome, {data.user.email}</h2>
 
           <div className="mt-10 flex items-center justify-between">
             <h3 className="text-2xl font-bold">Popular this week</h3>
@@ -64,7 +73,6 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap gap-4 py-4">
             {friendActivity.map((movie: Movie) => {
-              console.log(movie);
               return (
                 <div key={movie.id}>
                   <MovieCard
@@ -88,7 +96,6 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap gap-4 py-4">
             {popularMovies.map((movie: Movie) => {
-              console.log(movie);
               return (
                 <div key={movie.id}>
                   <MovieCard

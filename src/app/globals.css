@@ -11,9 +11,19 @@ body {
     @apply text-white;
 }
 
+input {
+    @apply text-black;
+    @apply py-24;
+}
+
+input {
+    outline: none !important;
+}
+
 h1,
 h2,
-li {
+li,
+label {
     font-family: var(--font-raleway);
 }
 

@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Input } from "@/components/ui/input";
+import LoginForm from "@/components/user/login/LoginForm";
+import AccountFormContainer from "@/components/user/AccountFormContainer";
 
 export default function Home() {
   return (
@@ -12,12 +13,14 @@ export default function Home() {
         className="fit -z-10"
       />
       <div className="h-svh w-1/2"></div>
-      <div className="flex h-svh w-1/2 items-center justify-center bg-white">
-        <div className="bg-black p-10">
-          <h1 className="text-primary text-4xl font-extrabold">Wideshot</h1>
-          <p className="text-xl">Movie social media</p>
+      <div className="flex h-svh w-1/2 items-center justify-center">
+        <div className="w-3/5 rounded border border-stone-700 bg-black p-14 shadow-xl">
+          <div>
+            <h1 className="text-primary  text-6xl font-extrabold">Wideshot</h1>
+            <p className="mb-6 mt-2  text-xl">A film-driven social media</p>
+          </div>
 
-          <Input />
+          <AccountFormContainer />
         </div>
       </div>
     </main>
