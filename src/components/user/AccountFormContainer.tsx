@@ -18,8 +18,6 @@ export default function AccountFormContainer() {
     formState === FORM_STATE.Login
       ? setFormState(FORM_STATE.Register)
       : setFormState(FORM_STATE.Login);
-
-    console.log("Changed");
   }
 
   return (
