@@ -41,13 +41,16 @@ export default function Navbar({
                 Log a Film
               </Button>
               <FaBell color="white" size="1.5rem" />
-              <Image
-                src={user?.profilePictureURL as string}
-                height={50}
-                width={50}
-                alt="Profile Picture"
-                className="border-primary rounded-full border-2"
-              />
+
+              <div className="relative mr-4 h-16 w-16 rounded-full bg-stone-700">
+                <Image
+                  src={user?.profilePictureURL as string}
+                  alt="Profile Picture"
+                  fill={true}
+                  objectFit="cover"
+                  className="border-primary rounded-full border-2"
+                />
+              </div>
             </div>
           )}
         </div>

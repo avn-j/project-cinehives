@@ -27,13 +27,14 @@ import {
   SelectValue,
   SelectContent,
 } from "@/components/ui/select";
-import { updateProfile } from "./actions";
+import { checkUsernameValidity, updateProfile } from "./actions";
 import { redirect } from "next/navigation";
 
 export default function SetupForm() {
   const [pictureSelected, setPictureSelected] = useState(false);
   const [picturePreview, setPicturePreview] = useState<File>();
   const [loading, setLoading] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
 
   const form = useForm<z.infer<typeof setupFormSchemaClient>>({
     resolver: zodResolver(setupFormSchemaClient),
@@ -52,6 +53,7 @@ export default function SetupForm() {
 
   async function handleSubmit(values: z.infer<typeof setupFormSchemaClient>) {
     setLoading(true);
+    setUsernameError("");
 
     const {
       firstName,
@@ -70,11 +72,16 @@ export default function SetupForm() {
     formData.append("profilePicture", profilePicture[0]);
     formData.append("country", country);
 
+    const validUsername = await checkUsernameValidity(userName);
+    if (!validUsername) {
+      setUsernameError(`${userName} is already taken.`);
+      setLoading(false);
+      return;
+    }
+
     await updateProfile(formData);
 
     setLoading(false);
-
-    redirect("/home");
   }
 
   function handlePressEnter(e: React.KeyboardEvent<HTMLLabelElement>) {
@@ -150,7 +157,9 @@ export default function SetupForm() {
                   />
                 </FormControl>
 
-                <FormMessage className="text-red-500" />
+                <FormMessage className="text-red-500">
+                  {usernameError}
+                </FormMessage>
               </FormItem>
             );
           }}

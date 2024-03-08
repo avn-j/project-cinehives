@@ -14,10 +14,10 @@ model Profile {
     firstName         String   @default("")
     username          String   @default("")
     country           String   @default("")
-    dateOfBirth       DateTime
+    dateOfBirth       DateTime @default(now())
     lastName          String   @default("")
     profileCreated    Boolean  @default(false)
-    profilePictureURL String
+    profilePictureURL String   @default("")
 
     @@map("profile")
 }

@@ -1,5 +1,4 @@
 import Image from "next/image";
-import LoginForm from "@/components/user/login/LoginForm";
 import AccountFormContainer from "@/components/user/AccountFormContainer";
 import { getSupabaseUser } from "@/utils/supabase/user";
 import { redirect } from "next/navigation";

@@ -74,3 +74,13 @@ export async function updateProfile(formData: FormData) {
 
   redirect("/home");
 }
+
+export async function checkUsernameValidity(username: string) {
+  const profile = await prisma.profile.findFirst({
+    where: {
+      username: username,
+    },
+  });
+
+  if (!profile) return true;
+}

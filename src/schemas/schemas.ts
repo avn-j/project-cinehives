@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DateTime } from "luxon";
 import { COUNTRIES_LIST } from "@/utils/countries";
+import prisma from "../../prisma/client";
 
 const passwordRegex = new RegExp(
   "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$",
