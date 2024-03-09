@@ -19,7 +19,7 @@ import { z } from "zod";
 import { FaUpload } from "react-icons/fa6";
 import Image from "next/image";
 import defaultPicture from "../../../../../public/profile.jpeg";
-import { COUNTRIES_LIST } from "@/utils/countries";
+import { COUNTRIES_LIST } from "@/lib/countries";
 import {
   SelectItem,
   SelectTrigger,
@@ -28,7 +28,6 @@ import {
   SelectContent,
 } from "@/components/ui/select";
 import { checkUsernameValidity, updateProfile } from "./actions";
-import { redirect } from "next/navigation";
 
 export default function SetupForm() {
   const [pictureSelected, setPictureSelected] = useState(false);
@@ -231,7 +230,7 @@ export default function SetupForm() {
                   <Input
                     {...field}
                     type="date"
-                    className="focus:ring-primary border-stone-600 bg-stone-900 py-6 text-lg text-white focus:ring-1"
+                    className="focus:ring-primary border-stone-600 bg-stone-900 text-lg text-white focus:ring-1"
                   />
                 </FormControl>
                 <FormMessage className="text-red-500" />

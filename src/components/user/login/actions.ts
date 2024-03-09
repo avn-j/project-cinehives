@@ -4,7 +4,7 @@ import { loginFormSchema } from "@/schemas/schemas";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function login(values: z.infer<typeof loginFormSchema>) {
   const result = loginFormSchema.safeParse(values);

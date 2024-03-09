@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { DateTime } from "luxon";
-import { COUNTRIES_LIST } from "@/utils/countries";
-import prisma from "../../prisma/client";
+import { COUNTRIES_LIST } from "@/lib/countries";
 
 const passwordRegex = new RegExp(
   "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$",
@@ -42,9 +41,8 @@ export const verifyFormSchema = z.object({
 });
 
 const MAX_FILE_SIZE = 1024 * 1024 * 3;
-const ACCEPTED_IMAGE_TYPES = ["image/jpg", "image/png"];
+const ACCEPTED_IMAGE_TYPES = ["image/jpg", "image/png", "image/jpeg"];
 const dateSchema = z.coerce.date();
-type DateSchema = z.infer<typeof dateSchema>;
 
 export const setupFormSchemaClient = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters long"),

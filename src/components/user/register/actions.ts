@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { registerFormSchema, verifyFormSchema } from "@/schemas/schemas";
 import { z } from "zod";
 import { redirect } from "next/navigation";

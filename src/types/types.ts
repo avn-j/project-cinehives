@@ -1,12 +1,4 @@
-import { MovieCardStatus } from "@/utils/enums";
-
-export interface Movie {
-  id: string;
-  src: string;
-  alt: string;
-  status?: MovieCardStatus;
-  userRating?: UserRating;
-}
+import { MovieCardStatus } from "@/lib/enums";
 
 export interface UserRating {
   username: string;

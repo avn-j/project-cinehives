@@ -1,39 +1,11 @@
-import { Movie, UserRating } from "@/types/types";
-import { MovieCardStatus } from "@/utils/enums";
+import { MovieCardStatus } from "@/lib/enums";
+import { MovieProps } from "@/components/global/movie-card";
 
 export const user: String = "Test User";
 
-export const popularMovies: Movie[] = [
+export const friendActivity: MovieProps[] = [
   {
-    id: "1",
-    src: "/movie.jpeg",
-    alt: "Movie Poster",
-  },
-  {
-    id: "2",
-    src: "/movie.jpeg",
-    alt: "Movie Poster",
-  },
-  {
-    id: "3",
-    src: "/movie.jpeg",
-    alt: "Movie Poster",
-  },
-  {
-    id: "4",
-    src: "/movie.jpeg",
-    alt: "Movie Poster",
-  },
-  {
-    id: "5",
-    src: "/movie.jpeg",
-    alt: "Movie Poster",
-  },
-];
-
-export const friendActivity: Movie[] = [
-  {
-    id: "1",
+    id: 1,
     src: "/movie.jpeg",
     alt: "Movie Poster",
     status: MovieCardStatus.Reviewed,
@@ -44,7 +16,7 @@ export const friendActivity: Movie[] = [
     },
   },
   {
-    id: "2",
+    id: 2,
     src: "/movie.jpeg",
     alt: "Movie Poster",
     status: MovieCardStatus.Rewatched,
@@ -55,7 +27,7 @@ export const friendActivity: Movie[] = [
     },
   },
   {
-    id: "3",
+    id: 3,
     src: "/movie.jpeg",
     alt: "Movie Poster",
     userRating: {
@@ -65,7 +37,7 @@ export const friendActivity: Movie[] = [
     },
   },
   {
-    id: "4",
+    id: 4,
     src: "/movie.jpeg",
     alt: "Movie Poster",
     userRating: {
@@ -75,7 +47,7 @@ export const friendActivity: Movie[] = [
     },
   },
   {
-    id: "5",
+    id: 5,
     src: "/movie.jpeg",
     alt: "Movie Poster",
     status: MovieCardStatus.Reviewed,

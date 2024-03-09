@@ -5,6 +5,9 @@ const nextConfig = {
       {
         hostname: "gqzjochbuoldsohwexvu.supabase.co",
       },
+      {
+        hostname: "image.tmdb.org",
+      },
     ],
   },
 };

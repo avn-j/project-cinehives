@@ -17,7 +17,7 @@ import { registerFormSchema } from "@/schemas/schemas";
 import { Separator } from "@/components/ui/separator";
 import { register } from "./actions";
 import { useState } from "react";
-import VerifyEmail from "./VerifyEmail";
+import VerifyEmail from "./verify-email";
 
 export default function RegisterForm() {
   const [loading, setLoading] = useState(false);

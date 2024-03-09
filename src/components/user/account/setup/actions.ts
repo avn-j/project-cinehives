@@ -1,7 +1,7 @@
 "use server";
 
 import { setupFormSchemaServer } from "@/schemas/schemas";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import prisma from "../../../../../prisma/client";
 import { redirect } from "next/navigation";
 

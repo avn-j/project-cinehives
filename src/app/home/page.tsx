@@ -1,31 +1,28 @@
-import Navbar from "@/components/global/Navbar";
-import Section from "@/components/global/layout/Section";
+import Navbar from "@/components/global/navbar";
+import Section from "@/components/global/layout/section";
 import Image from "next/image";
-import MovieCard from "@/components/global/MovieCard";
+import MovieCard, { MovieProps } from "@/components/global/movie-card";
 import { FaStar } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
-import { Movie } from "@/types/types";
-import { popularMovies, friendActivity, user } from "@/utils/test-data";
-import { getSupabaseUser } from "@/utils/supabase/user";
-import prisma from "../../../prisma/client";
+import { friendActivity, user } from "@/utils/test-data";
 import { redirect } from "next/navigation";
+import { getUser, getUserProfile } from "@/lib/authentication-functions";
+import { getPopularMovieData, getUpcomingMovies } from "./functions";
 
 export default async function AppHome() {
-  const user = await getSupabaseUser();
-
+  const user = await getUser();
   if (!user) redirect("/");
+  const profile = await getUserProfile(user);
+  if (!profile) redirect("/account/setup");
 
-  let profile = await prisma.profile.findFirst({
-    where: {
-      id: user.id,
-    },
-  });
-
-  if (!profile?.profileCreated) redirect("/account/setup");
+  const popularData = await getPopularMovieData();
+  const popularMovies = popularData.results.slice(0, 5);
+  const upcomingData = await getUpcomingMovies();
+  const upcomingMovies = upcomingData.results.slice(0, 5);
 
   return (
     <main>
-      <Navbar user={profile} />
+      <Navbar />
       <div className="relative min-h-[600px]">
         <div className="container relative min-h-[600px]">
           <div className="absolute bottom-0 left-0 px-8 py-8">
@@ -57,14 +54,17 @@ export default async function AppHome() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-4 py-4">
-          {popularMovies.map((movie: Movie) => {
+          {popularMovies.map((movie: any) => {
             return (
-              <MovieCard
-                id={movie.id}
-                key={movie.id}
-                alt={movie.alt}
-                src={movie.src}
-              />
+              <div key={movie.id}>
+                <MovieCard
+                  id={movie.id}
+                  alt={movie.title}
+                  src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
+                  status={movie.status}
+                  userRating={movie.userRating}
+                />
+              </div>
             );
           })}
         </div>
@@ -77,7 +77,7 @@ export default async function AppHome() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-4 py-4">
-          {friendActivity.map((movie: Movie) => {
+          {friendActivity.map((movie: MovieProps) => {
             return (
               <div key={movie.id}>
                 <MovieCard
@@ -100,14 +100,15 @@ export default async function AppHome() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-4 py-4">
-          {popularMovies.map((movie: Movie) => {
+          {upcomingMovies.map((movie: any) => {
             return (
               <div key={movie.id}>
                 <MovieCard
                   id={movie.id}
-                  alt={movie.alt}
-                  src={movie.src}
+                  alt={movie.title}
+                  src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
                   status={movie.status}
+                  userRating={movie.userRating}
                 />
               </div>
             );

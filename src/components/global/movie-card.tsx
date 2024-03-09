@@ -6,15 +6,41 @@ import {
 } from "../ui/hover-card";
 import { FaHeart, FaEye, FaList, FaStar } from "react-icons/fa";
 import { Badge } from "../ui/badge";
-import { MovieCardStatus } from "@/utils/enums";
-import { Movie as MovieProps } from "@/types/types";
-import UserRating from "./UserRating";
-import LikeButton from "./icon-buttons/LikeButton";
+import { MovieCardStatus } from "@/lib/enums";
+import UserRating from "./user-rating";
+import LikeButton from "./icon-buttons/like-button";
+import { UserRating as UserRatingType } from "@/types/types";
+import { getUser } from "@/lib/authentication-functions";
+import prisma from "../../../prisma/client";
 
-export default function MovieCard({ ...props }: MovieProps) {
+export interface MovieProps {
+  id: number;
+  src: string;
+  alt: string;
+  status?: MovieCardStatus;
+  userRating?: UserRatingType;
+}
+
+async function checkLiked(mediaId: number) {
+  const user = await getUser();
+
+  if (!user) return false;
+  const like = await prisma.likes.findFirst({
+    where: {
+      user_id: user.id,
+      media_id: mediaId,
+    },
+  });
+
+  return like ? true : false;
+}
+
+export default async function MovieCard({ ...props }: MovieProps) {
   if (!props.status) {
     props.status = MovieCardStatus.None;
   }
+
+  const liked = await checkLiked(props.id);
 
   return (
     <div>
@@ -47,7 +73,7 @@ export default function MovieCard({ ...props }: MovieProps) {
           sideOffset={-55}
         >
           <div className="flex justify-center gap-8">
-            <LikeButton />
+            <LikeButton mediaId={props.id} liked={liked} />
             <FaEye size={25} />
             <FaList size={25} />
             <FaStar size={25} />

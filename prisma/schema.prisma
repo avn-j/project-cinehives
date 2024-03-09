@@ -10,16 +10,28 @@ datasource db {
 model Profile {
     id                String   @id @db.Uuid
     role              Role     @default(user)
-    createdAt         DateTime @default(now())
-    firstName         String   @default("")
+    createdAt         DateTime @default(now()) @map("created_at")
+    firstName         String   @default("") @map("first_name")
     username          String   @default("")
     country           String   @default("")
-    dateOfBirth       DateTime @default(now())
-    lastName          String   @default("")
-    profileCreated    Boolean  @default(false)
-    profilePictureURL String   @default("")
+    dateOfBirth       DateTime @default(now()) @map("date_of_birth")
+    lastName          String   @default("") @map("last_name")
+    profileCreated    Boolean  @default(false) @map("profile_created")
+    profilePictureURL String   @default("") @map("profile_picture_url")
+    likes             Likes[]
 
     @@map("profile")
+}
+
+model Likes {
+    id        Int      @id @default(autoincrement())
+    media_id  Int
+    createdAt DateTime @default(now()) @map("created_at")
+    user_id   String   @map("user_id") @db.Uuid
+    User      Profile  @relation(fields: [user_id], references: [id])
+
+    @@unique([media_id, user_id])
+    @@map("likes")
 }
 
 enum Role {
