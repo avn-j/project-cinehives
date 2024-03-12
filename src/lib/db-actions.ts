@@ -5,7 +5,7 @@ import prisma from "../../prisma/client";
 import { getUser } from "@/lib/authentication-functions";
 import { User } from "@supabase/supabase-js";
 
-export async function handleNewRating(rating: number, mediaId: number) {
+export async function handleCreateNewRating(rating: number, mediaId: number) {
   const user = await getUser();
 
   if (!user) return null;

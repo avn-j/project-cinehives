@@ -1,8 +1,8 @@
 "use client";
 
-import { handleDeleteRating, handleNewRating } from "@/lib/db-actions";
+import { handleCreateNewRating, handleDeleteRating } from "@/lib/db-actions";
 import { MouseEvent, useRef, useState } from "react";
-import { FaStar, FaRegStar } from "react-icons/fa6";
+import { FaStar, FaRegStar, FaXmark } from "react-icons/fa6";
 
 interface StarRatingProps {
   precision: number;
@@ -35,20 +35,23 @@ export default function StarRating({ ...props }: StarRatingProps) {
     );
   };
 
+  function handleClear(e: MouseEvent) {
+    props.handleNewRating(-1);
+    handleDeleteRating(props.mediaId);
+    setActiveStar(-1);
+    setHoverActiveStar(-1);
+    props.toggleRatedHandler(false);
+  }
+
   function handleClick(e: MouseEvent) {
     const rating = calculateRating(e);
 
-    if (rating == activeStar) {
-      handleDeleteRating(props.mediaId);
-      setActiveStar(-1);
-      setHoverActiveStar(-1);
-      props.toggleRatedHandler(false);
-    } else {
-      handleDeleteRating(props.mediaId);
-      setActiveStar(rating);
-      handleNewRating(rating, props.mediaId);
-      props.toggleRatedHandler(true);
-    }
+    if (rating == activeStar) return;
+
+    handleDeleteRating(props.mediaId);
+    setActiveStar(rating);
+    handleCreateNewRating(rating, props.mediaId);
+    props.toggleRatedHandler(true);
     props.handleNewRating(rating);
   }
 
@@ -63,48 +66,57 @@ export default function StarRating({ ...props }: StarRatingProps) {
   }
 
   return (
-    <div
-      className="relative flex cursor-pointer gap-1"
-      onClick={(e) => {
-        handleClick(e);
-      }}
-      ref={ratingContainerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      {[...new Array(totalStars)].map((star, index) => {
-        const activeState = isHovered ? hoverActiveStar : activeStar;
+    <div className="flex items-center gap-2">
+      <div
+        className="relative flex cursor-pointer items-center justify-center gap-1"
+        onClick={(e) => {
+          handleClick(e);
+        }}
+        ref={ratingContainerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        {[...new Array(totalStars)].map((star, index) => {
+          const activeState = isHovered ? hoverActiveStar : activeStar;
 
-        const showEmptyIcon = activeState === -1 || activeState < index + 1;
+          const showEmptyIcon = activeState === -1 || activeState < index + 1;
 
-        const isActiveRating = activeState !== 1;
-        const isRatingWithPrecision = activeState % 1 !== 0;
-        const isRatingEqualToIndex = Math.ceil(activeState) === index + 1;
-        const showRatingWithPrecision =
-          isActiveRating && isRatingWithPrecision && isRatingEqualToIndex;
+          const isActiveRating = activeState !== 1;
+          const isRatingWithPrecision = activeState % 1 !== 0;
+          const isRatingEqualToIndex = Math.ceil(activeState) === index + 1;
+          const showRatingWithPrecision =
+            isActiveRating && isRatingWithPrecision && isRatingEqualToIndex;
 
-        const starWidth = showRatingWithPrecision
-          ? `${(activeState % 1) * 100}%`
-          : "0%";
+          const starWidth = showRatingWithPrecision
+            ? `${(activeState % 1) * 100}%`
+            : "0%";
 
-        return (
-          <div key={index} className="relative">
-            <div
-              className="absolute overflow-hidden"
-              style={{ width: `${starWidth}` }}
-            >
-              <FaStar size={25} className="text-primary" />
-            </div>
-            <div className="">
-              {showEmptyIcon ? (
-                <FaRegStar size={25} className="text-stone-700" />
-              ) : (
+          return (
+            <div key={index} className="relative">
+              <div
+                className="absolute overflow-hidden"
+                style={{ width: `${starWidth}` }}
+              >
                 <FaStar size={25} className="text-primary" />
-              )}
+              </div>
+              <div className="">
+                {showEmptyIcon ? (
+                  <FaRegStar size={25} className="text-stone-700" />
+                ) : (
+                  <FaStar size={25} className="text-primary" />
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      {activeStar > -1 && (
+        <FaXmark
+          size={17.5}
+          className="cursor-pointer text-stone-400"
+          onClick={handleClear}
+        />
+      )}
     </div>
   );
 }
