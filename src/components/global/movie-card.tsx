@@ -35,11 +35,17 @@ export default async function MovieCard({ ...props }: MovieProps) {
     props.status = MovieCardStatus.None;
   }
 
-  const liked = await checkLiked(props.id, props.user);
-  const watched = await checkWatched(props.id, props.user);
-  const onWatchlist = await checkOnWatchlist(props.id, props.user);
-  const rating = await checkRating(props.id, props.user);
-  const rated = rating > -1 ? true : false;
+  // const liked = await checkLiked(props.id, props.user);
+  // const watched = await checkWatched(props.id, props.user);
+  // const onWatchlist = await checkOnWatchlist(props.id, props.user);
+  // const rating = await checkRating(props.id, props.user);
+  // const rated = rating > -1 ? true : false;
+
+  const liked = false;
+  const watched = false;
+  const onWatchlist = false;
+  const rating = -1;
+  const rated = false;
 
   return (
     <div>
