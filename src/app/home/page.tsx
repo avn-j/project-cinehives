@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
 import { getPopularMovieData, getUpcomingMovies } from "./functions";
+import { buildMovieData } from "@/lib/movie-data-builder";
 
 export default async function AppHome() {
   const user = await getUser();
@@ -16,6 +17,7 @@ export default async function AppHome() {
 
   const popularData = await getPopularMovieData();
   const popularMovies = popularData.results.slice(0, 5);
+  const builtData = await buildMovieData(popularMovies, user);
   const upcomingData = await getUpcomingMovies();
   const upcomingMovies = upcomingData.results.slice(0, 5);
 
@@ -53,16 +55,16 @@ export default async function AppHome() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-4 py-4">
-          {popularMovies.map((movie: any) => {
+          {builtData.map((movie: any) => {
             return (
               <div key={movie.id}>
                 <MovieCard
                   user={user}
                   id={movie.id}
                   alt={movie.title}
-                  src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
+                  src={`https://image.tmdb.org/t/p/original/${movie.posterPath}`}
                   status={movie.status}
-                  userRating={movie.userRating}
+                  userActivity={movie.userActivity}
                 />
               </div>
             );
@@ -88,7 +90,7 @@ export default async function AppHome() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-4 py-4">
-          {upcomingMovies.map((movie: any) => {
+          {/* {upcomingMovies.map((movie: any) => {
             return (
               <div key={movie.id}>
                 <MovieCard
@@ -101,7 +103,7 @@ export default async function AppHome() {
                 />
               </div>
             );
-          })}
+          })} */}
         </div>
       </Section>
     </main>

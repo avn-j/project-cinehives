@@ -33,6 +33,7 @@ model Activity {
     userId       String       @map("user_id") @db.Uuid
     createdAt    DateTime     @default(now()) @map("created_at")
     updatedAt    DateTime     @default(now()) @map("updated_at")
+    mediaId      Int          @map("media_id")
     activityType ActivityType @map("activity_type")
 
     user           Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)

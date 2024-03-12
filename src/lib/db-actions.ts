@@ -14,6 +14,7 @@ export async function handleNewRating(rating: number, mediaId: number) {
     data: {
       userId: user.id,
       activityType: "rating",
+      mediaId: mediaId,
       MediaRating: {
         create: {
           mediaId: mediaId,
@@ -61,6 +62,7 @@ export async function handleWatched(mediaId: number) {
     data: {
       userId: user.id,
       activityType: "watched",
+      mediaId: mediaId,
       MediaWatched: {
         create: {
           mediaId: mediaId,
@@ -116,6 +118,7 @@ export async function handleAddToWatchlist(mediaId: number) {
     data: {
       userId: user.id,
       activityType: "watchlist",
+      mediaId: mediaId,
       MediaWatchlist: {
         create: {
           mediaId: mediaId,
@@ -158,6 +161,7 @@ export async function handleLike(mediaId: number) {
     data: {
       userId: user.id,
       activityType: "like",
+      mediaId: mediaId,
       MediaLike: {
         create: {
           mediaId: mediaId,

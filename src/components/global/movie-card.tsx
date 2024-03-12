@@ -26,7 +26,7 @@ export interface MovieProps {
   src: string;
   alt: string;
   status?: MovieCardStatus;
-  userRating?: UserRatingType;
+  userActivity: string[];
   user: User;
 }
 
@@ -35,17 +35,11 @@ export default async function MovieCard({ ...props }: MovieProps) {
     props.status = MovieCardStatus.None;
   }
 
-  // const liked = await checkLiked(props.id, props.user);
-  // const watched = await checkWatched(props.id, props.user);
-  // const onWatchlist = await checkOnWatchlist(props.id, props.user);
-  // const rating = await checkRating(props.id, props.user);
-  // const rated = rating > -1 ? true : false;
-
-  const liked = false;
-  const watched = false;
-  const onWatchlist = false;
-  const rating = -1;
-  const rated = false;
+  const liked = props.userActivity?.includes("like") || false;
+  const watched = props.userActivity?.includes("watched") || false;
+  const onWatchlist = props.userActivity?.includes("watchlist") || false;
+  const rated = props.userActivity?.includes("rated") || false;
+  const rating = rated ? await checkRating(props.id, props.user) : -1;
 
   return (
     <div>
@@ -85,13 +79,13 @@ export default async function MovieCard({ ...props }: MovieProps) {
           </div>
         </HoverCardContent>
       </HoverCard>
-      {props.userRating && (
+      {/* {props.userRating && (
         <UserRating
           username={props.userRating.username}
           rating={props.userRating.rating}
           profilePictureSrc={props.userRating.profilePictureSrc}
         />
-      )}
+      )} */}
     </div>
   );
 }
