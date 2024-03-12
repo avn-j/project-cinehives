@@ -4,7 +4,6 @@ import Image from "next/image";
 import MovieCard, { MovieProps } from "@/components/global/movie-card";
 import { FaStar } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
-import { friendActivity, user } from "@/utils/test-data";
 import { redirect } from "next/navigation";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
 import { getPopularMovieData, getUpcomingMovies } from "./functions";
@@ -58,6 +57,7 @@ export default async function AppHome() {
             return (
               <div key={movie.id}>
                 <MovieCard
+                  user={user}
                   id={movie.id}
                   alt={movie.title}
                   src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}
@@ -77,19 +77,7 @@ export default async function AppHome() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-4 py-4">
-          {friendActivity.map((movie: MovieProps) => {
-            return (
-              <div key={movie.id}>
-                <MovieCard
-                  id={movie.id}
-                  alt={movie.alt}
-                  src={movie.src}
-                  status={movie.status}
-                  userRating={movie.userRating}
-                />
-              </div>
-            );
-          })}
+          <h2>No friend activity</h2>
         </div>
       </Section>
       <Section>
@@ -104,6 +92,7 @@ export default async function AppHome() {
             return (
               <div key={movie.id}>
                 <MovieCard
+                  user={user}
                   id={movie.id}
                   alt={movie.title}
                   src={`https://image.tmdb.org/t/p/original/${movie.poster_path}`}

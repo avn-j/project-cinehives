@@ -4,14 +4,22 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "../ui/hover-card";
-import { FaHeart, FaEye, FaList, FaStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
 import { Badge } from "../ui/badge";
 import { MovieCardStatus } from "@/lib/enums";
 import UserRating from "./user-rating";
 import LikeButton from "./icon-buttons/like-button";
 import { UserRating as UserRatingType } from "@/types/types";
-import { getUser } from "@/lib/authentication-functions";
-import prisma from "../../../prisma/client";
+import { User } from "@supabase/supabase-js";
+import {
+  checkLiked,
+  checkOnWatchlist,
+  checkRating,
+  checkWatched,
+} from "@/lib/db-actions";
+import WatchButton from "./icon-buttons/watch-button";
+import WatchlistButton from "./icon-buttons/watchlist-button";
+import RateButton from "./icon-buttons/rate-button";
 
 export interface MovieProps {
   id: number;
@@ -19,20 +27,7 @@ export interface MovieProps {
   alt: string;
   status?: MovieCardStatus;
   userRating?: UserRatingType;
-}
-
-async function checkLiked(mediaId: number) {
-  const user = await getUser();
-
-  if (!user) return false;
-  const like = await prisma.likes.findFirst({
-    where: {
-      user_id: user.id,
-      media_id: mediaId,
-    },
-  });
-
-  return like ? true : false;
+  user: User;
 }
 
 export default async function MovieCard({ ...props }: MovieProps) {
@@ -40,7 +35,11 @@ export default async function MovieCard({ ...props }: MovieProps) {
     props.status = MovieCardStatus.None;
   }
 
-  const liked = await checkLiked(props.id);
+  const liked = await checkLiked(props.id, props.user);
+  const watched = await checkWatched(props.id, props.user);
+  const onWatchlist = await checkOnWatchlist(props.id, props.user);
+  const rating = await checkRating(props.id, props.user);
+  const rated = rating > -1 ? true : false;
 
   return (
     <div>
@@ -74,9 +73,9 @@ export default async function MovieCard({ ...props }: MovieProps) {
         >
           <div className="flex justify-center gap-8">
             <LikeButton mediaId={props.id} liked={liked} />
-            <FaEye size={25} />
-            <FaList size={25} />
-            <FaStar size={25} />
+            <WatchButton mediaId={props.id} watched={watched} />
+            <WatchlistButton mediaId={props.id} onWatchlist={onWatchlist} />
+            <RateButton mediaId={props.id} rated={rated} rating={rating} />
           </div>
         </HoverCardContent>
       </HoverCard>

@@ -12,29 +12,123 @@ model Profile {
     role              Role     @default(user)
     createdAt         DateTime @default(now()) @map("created_at")
     firstName         String   @default("") @map("first_name")
-    username          String   @default("")
+    lastName          String   @default("") @map("last_name")
+    username          String   @unique @default("")
+    email             String   @unique @db.VarChar()
     country           String   @default("")
     dateOfBirth       DateTime @default(now()) @map("date_of_birth")
-    lastName          String   @default("") @map("last_name")
     profileCreated    Boolean  @default(false) @map("profile_created")
     profilePictureURL String   @default("") @map("profile_picture_url")
-    likes             Likes[]
 
+    Activity      Activity[]
+    ActivityLikes ActivityLike[]
+    Watchlist     Watchlist?
+
+    @@unique([email, username])
     @@map("profile")
 }
 
-model Likes {
-    id        Int      @id @default(autoincrement())
-    media_id  Int
-    createdAt DateTime @default(now()) @map("created_at")
-    user_id   String   @map("user_id") @db.Uuid
-    User      Profile  @relation(fields: [user_id], references: [id])
+model Activity {
+    id           String       @id @default(uuid()) @db.Uuid
+    userId       String       @map("user_id") @db.Uuid
+    createdAt    DateTime     @default(now()) @map("created_at")
+    updatedAt    DateTime     @default(now()) @map("updated_at")
+    activityType ActivityType @map("activity_type")
 
-    @@unique([media_id, user_id])
-    @@map("likes")
+    user           Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    ActivityLikes  ActivityLike[]
+    MediaLike      MediaLike?
+    MediaRating    MediaRating?
+    MediaWatched   MediaWatched?
+    MediaReview    MediaReview?
+    MediaWatchlist MediaWatchlist?
+
+    @@index(userId)
+    @@map("activity")
+}
+
+model ActivityLike {
+    activityId String @id @unique @map("activity_id") @db.Uuid
+    userId     String @map("user_id") @db.Uuid
+
+    Activity Activity @relation(fields: [activityId], references: [id])
+    User     Profile  @relation(fields: [userId], references: [id])
+
+    @@map("activity_like")
+}
+
+model MediaLike {
+    activityId String @id @unique @map("activity_id") @db.Uuid
+    mediaId    Int    @map("media_id")
+
+    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+    @@index(mediaId)
+    @@map("media_like")
+}
+
+model MediaRating {
+    activityId String @id @unique @map("activity_id") @db.Uuid
+    mediaId    Int    @map("media_id")
+    rating     Float
+
+    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+    @@index(mediaId)
+    @@map("media_rating")
+}
+
+model MediaWatched {
+    activityId String @id @unique @map("activity_id") @db.Uuid
+    mediaId    Int    @map("media_id")
+
+    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+    @@index(mediaId)
+    @@map("media_watched")
+}
+
+model MediaReview {
+    activityId String @id @unique @map("activity_id") @db.Uuid
+    mediaId    Int    @map("media_id")
+
+    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+    @@index(mediaId)
+    @@map("media_review")
+}
+
+model Watchlist {
+    id     String @id @default(uuid()) @db.Uuid
+    userId String @unique @map("user_id") @db.Uuid
+
+    Profile Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    Media   MediaWatchlist[]
+
+    @@map("watchlist")
+}
+
+model MediaWatchlist {
+    activityId  String @id @map("activity_id") @db.Uuid
+    watchlistId String @map("watchlist_id") @db.Uuid
+    mediaId     Int    @map("media_id")
+
+    Watchlist Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+    Activity  Activity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+    @@map("media_watchlisted")
 }
 
 enum Role {
     admin
     user
+}
+
+enum ActivityType {
+    like
+    review
+    rating
+    rewatch
+    watched
+    watchlist
 }

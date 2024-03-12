@@ -4,6 +4,7 @@ import { setupFormSchemaServer } from "@/schemas/schemas";
 import { createClient } from "@/lib/supabase/server";
 import prisma from "../../../../../prisma/client";
 import { redirect } from "next/navigation";
+import { createNewWatchlist } from "@/lib/db-actions";
 
 export async function updateProfile(formData: FormData) {
   const formValues = {
@@ -21,9 +22,9 @@ export async function updateProfile(formData: FormData) {
   const supabase = createClient();
   const userData = await supabase.auth.getUser();
 
-  if (!userData) return;
+  if (!userData.data.user) return;
 
-  const userId = userData.data.user?.id;
+  const userId = userData.data.user.id;
   const {
     firstName,
     lastName,
@@ -70,6 +71,10 @@ export async function updateProfile(formData: FormData) {
         profileCreated: true,
       },
     });
+  } catch (err) {}
+
+  try {
+    createNewWatchlist(userId);
   } catch (err) {}
 
   redirect("/home");

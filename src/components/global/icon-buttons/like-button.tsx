@@ -1,7 +1,7 @@
 "use client";
 
 import { FaHeart } from "react-icons/fa";
-import { handleLike, handleUnlike } from "./actions";
+import { handleLike, handleUnlike } from "@/lib/db-actions";
 import { useState } from "react";
 
 interface LikeButtonProps {

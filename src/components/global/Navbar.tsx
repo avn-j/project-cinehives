@@ -5,10 +5,12 @@ import { Button } from "../ui/button";
 import { FaBell } from "react-icons/fa";
 import { useUserContext } from "@/providers/user-context";
 import { createClient } from "@/lib/supabase/client";
+import { redirect } from "next/navigation";
 
 async function handleLogout() {
   const supabase = createClient();
   await supabase.auth.signOut();
+  redirect("/");
 }
 
 export default function Navbar() {
