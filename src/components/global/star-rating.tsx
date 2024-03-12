@@ -2,7 +2,7 @@
 
 import { handleDeleteRating, handleNewRating } from "@/lib/db-actions";
 import { MouseEvent, useRef, useState } from "react";
-import { FaStar, FaRegStar, FaCross } from "react-icons/fa6";
+import { FaStar, FaRegStar } from "react-icons/fa6";
 
 interface StarRatingProps {
   precision: number;
@@ -43,6 +43,7 @@ export default function StarRating({ ...props }: StarRatingProps) {
       setHoverActiveStar(-1);
       props.toggleRatedHandler(false);
     } else {
+      handleDeleteRating(props.mediaId);
       setActiveStar(rating);
       handleNewRating(rating, props.mediaId);
       props.toggleRatedHandler(true);
@@ -86,7 +87,10 @@ export default function StarRating({ ...props }: StarRatingProps) {
 
         return (
           <div key={index} className="relative">
-            <div className={`absolute w-[${starWidth}] overflow-hidden`}>
+            <div
+              className="absolute overflow-hidden"
+              style={{ width: `${starWidth}` }}
+            >
               <FaStar size={25} className="text-primary" />
             </div>
             <div className="">

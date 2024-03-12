@@ -31,7 +31,7 @@ export async function handleDeleteRating(mediaId: number) {
 
   if (!user) return null;
 
-  await prisma.activity.deleteMany({
+  const rating = await prisma.activity.deleteMany({
     where: {
       userId: user.id,
       activityType: "rating",
