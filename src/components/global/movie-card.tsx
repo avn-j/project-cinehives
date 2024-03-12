@@ -1,25 +1,20 @@
+"use client";
+
 import Image from "next/image";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "../ui/hover-card";
-import { FaStar } from "react-icons/fa";
 import { Badge } from "../ui/badge";
 import { MovieCardStatus } from "@/lib/enums";
-import UserRating from "./user-rating";
 import LikeButton from "./icon-buttons/like-button";
-import { UserRating as UserRatingType } from "@/types/types";
 import { User } from "@supabase/supabase-js";
-import {
-  checkLiked,
-  checkOnWatchlist,
-  checkRating,
-  checkWatched,
-} from "@/lib/db-actions";
+import { checkRating } from "@/lib/db-actions";
 import WatchButton from "./icon-buttons/watch-button";
 import WatchlistButton from "./icon-buttons/watchlist-button";
 import RateButton from "./icon-buttons/rate-button";
+import { useState } from "react";
 
 export interface MovieProps {
   id: number;
@@ -28,18 +23,47 @@ export interface MovieProps {
   status?: MovieCardStatus;
   userActivity: string[];
   user: User;
+  rating: number;
 }
 
-export default async function MovieCard({ ...props }: MovieProps) {
+export default function MovieCard({ ...props }: MovieProps) {
+  const [liked, setLiked] = useState(
+    props.userActivity?.includes("like") || false,
+  );
+  const [watched, setWatched] = useState(
+    props.userActivity?.includes("watched") || false,
+  );
+  const [onWatchlist, setOnWatchlist] = useState(
+    props.userActivity?.includes("watchlist") || false,
+  );
+  const [rated, setRated] = useState(
+    props.userActivity?.includes("rating") || false,
+  );
+  const [newRating, setNewRating] = useState<number | null>(null);
+
   if (!props.status) {
     props.status = MovieCardStatus.None;
   }
 
-  const liked = props.userActivity?.includes("like") || false;
-  const watched = props.userActivity?.includes("watched") || false;
-  const onWatchlist = props.userActivity?.includes("watchlist") || false;
-  const rated = props.userActivity?.includes("rated") || false;
-  const rating = rated ? await checkRating(props.id, props.user) : -1;
+  function toggleLikeHandler(liked: boolean) {
+    setLiked(liked);
+  }
+
+  function toggleWatchlistHandler(onWatchlist: boolean) {
+    setOnWatchlist(onWatchlist);
+  }
+
+  function toggleRatedHandler(rated: boolean) {
+    setRated(rated);
+  }
+
+  function toggleWatchedHandler(watched: boolean) {
+    setWatched(watched);
+  }
+
+  function handleNewRating(rating: number) {
+    setNewRating(rating);
+  }
 
   return (
     <div>
@@ -72,10 +96,29 @@ export default async function MovieCard({ ...props }: MovieProps) {
           sideOffset={-55}
         >
           <div className="flex justify-center gap-8">
-            <LikeButton mediaId={props.id} liked={liked} />
-            <WatchButton mediaId={props.id} watched={watched} />
-            <WatchlistButton mediaId={props.id} onWatchlist={onWatchlist} />
-            <RateButton mediaId={props.id} rated={rated} rating={rating} />
+            <LikeButton
+              mediaId={props.id}
+              liked={liked}
+              toggleLikeHandler={toggleLikeHandler}
+            />
+            <WatchButton
+              mediaId={props.id}
+              watched={watched}
+              toggleWatchedHandler={toggleWatchedHandler}
+            />
+            <WatchlistButton
+              mediaId={props.id}
+              onWatchlist={onWatchlist}
+              toggleWatchlistHandler={toggleWatchlistHandler}
+            />
+            <RateButton
+              mediaId={props.id}
+              rated={rated}
+              user={props.user}
+              rating={newRating ? newRating : props.rating}
+              toggleRatedHandler={toggleRatedHandler}
+              handleNewRating={handleNewRating}
+            />
           </div>
         </HoverCardContent>
       </HoverCard>

@@ -1,20 +1,17 @@
-"use client";
-
-import { FaHeart } from "react-icons/fa";
 import { handleLike, handleUnlike } from "@/lib/db-actions";
-import { useState } from "react";
+import { FaHeart } from "react-icons/fa";
 
 interface LikeButtonProps {
   mediaId: number;
   liked: boolean;
+  toggleLikeHandler: Function;
 }
 
 export default function LikeButton({ ...props }: LikeButtonProps) {
-  const [liked, toggleLiked] = useState(props.liked);
-
   function handleToggle() {
-    toggleLiked(!liked);
-    if (!liked) {
+    props.toggleLikeHandler(!props.liked);
+
+    if (!props.liked) {
       handleLike(props.mediaId);
     } else {
       handleUnlike(props.mediaId);
@@ -23,7 +20,7 @@ export default function LikeButton({ ...props }: LikeButtonProps) {
 
   return (
     <button onClick={handleToggle}>
-      <FaHeart size={25} className={liked ? "text-red-500" : ""} />
+      <FaHeart size={25} className={props.liked ? "text-red-500" : ""} />
     </button>
   );
 }

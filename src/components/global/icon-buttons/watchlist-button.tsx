@@ -1,23 +1,21 @@
 "use client";
 
-import { FaList } from "react-icons/fa";
 import {
   handleAddToWatchlist,
   handleRemoveFromWatchlist,
 } from "@/lib/db-actions";
-import { useState } from "react";
+import { FaList } from "react-icons/fa";
 
 interface WatchlistButtonProps {
   mediaId: number;
   onWatchlist: boolean;
+  toggleWatchlistHandler: Function;
 }
 
 export default function WatchlistButton({ ...props }: WatchlistButtonProps) {
-  const [onWatchlist, toggleOnWatchlist] = useState(props.onWatchlist);
-
   function handleToggle() {
-    toggleOnWatchlist(!onWatchlist);
-    if (!onWatchlist) {
+    props.toggleWatchlistHandler(!props.onWatchlist);
+    if (!props.onWatchlist) {
       handleAddToWatchlist(props.mediaId);
     } else {
       handleRemoveFromWatchlist(props.mediaId);
@@ -26,7 +24,7 @@ export default function WatchlistButton({ ...props }: WatchlistButtonProps) {
 
   return (
     <button onClick={handleToggle}>
-      <FaList size={25} className={onWatchlist ? "text-primary" : ""} />
+      <FaList size={25} className={props.onWatchlist ? "text-primary" : ""} />
     </button>
   );
 }

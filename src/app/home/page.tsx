@@ -64,6 +64,7 @@ export default async function AppHome() {
                   alt={movie.title}
                   src={`https://image.tmdb.org/t/p/original/${movie.posterPath}`}
                   status={movie.status}
+                  rating={movie.rating}
                   userActivity={movie.userActivity}
                 />
               </div>

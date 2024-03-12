@@ -9,6 +9,7 @@ interface StarRatingProps {
   initialRating?: number;
   mediaId: number;
   toggleRatedHandler: Function;
+  handleNewRating: Function;
 }
 
 export default function StarRating({ ...props }: StarRatingProps) {
@@ -48,6 +49,7 @@ export default function StarRating({ ...props }: StarRatingProps) {
       handleNewRating(rating, props.mediaId);
       props.toggleRatedHandler(true);
     }
+    props.handleNewRating(rating);
   }
 
   function handleMouseMove(e: MouseEvent) {
