@@ -5,9 +5,10 @@ import {
   handleRemoveFromWatchlist,
 } from "@/lib/db-actions";
 import { FaList } from "react-icons/fa";
+import { Media } from "@prisma/client";
 
 interface WatchlistButtonProps {
-  mediaId: number;
+  media: Media;
   onWatchlist: boolean;
   toggleWatchlistHandler: Function;
 }
@@ -16,9 +17,9 @@ export default function WatchlistButton({ ...props }: WatchlistButtonProps) {
   function handleToggle() {
     props.toggleWatchlistHandler(!props.onWatchlist);
     if (!props.onWatchlist) {
-      handleAddToWatchlist(props.mediaId);
+      handleAddToWatchlist(props.media);
     } else {
-      handleRemoveFromWatchlist(props.mediaId);
+      handleRemoveFromWatchlist(props.media);
     }
   }
 

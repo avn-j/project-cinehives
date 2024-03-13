@@ -1,5 +1,6 @@
 import { User } from "@supabase/supabase-js";
 import prisma from "../../prisma/client";
+import { MOVIE_DB_IMG_PATH_PREFIX } from "./consts";
 
 export async function buildMovieData(mediaDbData: any[], user: User) {
   const mediaIds = mediaDbData.map((media) => {
@@ -49,11 +50,25 @@ export async function buildMovieData(mediaDbData: any[], user: User) {
   const mediaObj = mediaDbData.map((media) => {
     return {
       id: media.id,
-      posterPath: media.poster_path,
+      title: media.title || media.name,
+      posterPath: MOVIE_DB_IMG_PATH_PREFIX + media.poster_path,
       rating: mediaRatings[media.id] || -1,
       userActivity: mediaUserActivity[media.id] || null,
     };
   });
 
   return mediaObj;
+}
+
+export function buildBannerData(mediaDbData: any[]) {
+  const bannerData = mediaDbData.map((media) => {
+    return {
+      id: media.id,
+      backdropPath: MOVIE_DB_IMG_PATH_PREFIX + media.backdrop_path,
+      title: media.title,
+      releaseDate: media.release_date,
+    };
+  });
+
+  return bannerData.slice(0, 5);
 }

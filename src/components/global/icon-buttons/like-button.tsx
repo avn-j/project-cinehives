@@ -1,8 +1,9 @@
 import { handleLike, handleUnlike } from "@/lib/db-actions";
+import { Media } from "@prisma/client";
 import { FaHeart } from "react-icons/fa";
 
 interface LikeButtonProps {
-  mediaId: number;
+  media: Media;
   liked: boolean;
   toggleLikeHandler: Function;
 }
@@ -12,9 +13,9 @@ export default function LikeButton({ ...props }: LikeButtonProps) {
     props.toggleLikeHandler(!props.liked);
 
     if (!props.liked) {
-      handleLike(props.mediaId);
+      handleLike(props.media);
     } else {
-      handleUnlike(props.mediaId);
+      handleUnlike(props.media);
     }
   }
 

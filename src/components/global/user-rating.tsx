@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { FaStar, FaStarHalf } from "react-icons/fa";
-import { UserRating as UserRatingProps } from "@/types/types";
+import { UserRating as UserRatingProps } from "@/lib/types";
 
 export default function UserRating({ ...props }: UserRatingProps) {
   let halfStar: boolean = false;

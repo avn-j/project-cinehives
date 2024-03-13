@@ -1,16 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { FaBell } from "react-icons/fa";
 import { useUserContext } from "@/providers/user-context";
 import { createClient } from "@/lib/supabase/client";
-import { redirect } from "next/navigation";
+import { navigateToLogin } from "./actions";
 
 async function handleLogout() {
   const supabase = createClient();
   await supabase.auth.signOut();
-  redirect("/");
+  navigateToLogin();
 }
 
 export default function Navbar() {
@@ -19,7 +19,7 @@ export default function Navbar() {
   return (
     <div className="fixed z-20 w-full border-b border-stone-900 bg-black py-6">
       <div className="container mx-auto">
-        <div className="flex justify-between">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-12">
             <h1 className="text-primary text-4xl font-extrabold">Wideshot</h1>
 
@@ -47,8 +47,7 @@ export default function Navbar() {
                 src={user.profilePictureURL}
                 alt="Profile Picture"
                 fill={true}
-                objectFit="cover"
-                className="border-primary rounded-full border-2"
+                className="border-primary rounded-full border-2 object-fill"
               />
             </div>
           </div>

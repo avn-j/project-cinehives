@@ -7,6 +7,20 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum Role {
+    admin
+    user
+}
+
+enum ActivityType {
+    like
+    review
+    rating
+    rewatch
+    watched
+    watchlist
+}
+
 model Profile {
     id                String   @id @db.Uuid
     role              Role     @default(user)
@@ -43,6 +57,7 @@ model Activity {
     MediaWatched   MediaWatched?
     MediaReview    MediaReview?
     MediaWatchlist MediaWatchlist?
+    Media          Media           @relation(fields: [mediaId], references: [mediaId])
 
     @@index(userId)
     @@map("activity")
@@ -63,6 +78,7 @@ model MediaLike {
     mediaId    Int    @map("media_id")
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    Media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_like")
@@ -74,6 +90,7 @@ model MediaRating {
     rating     Float
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    Media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_rating")
@@ -84,6 +101,7 @@ model MediaWatched {
     mediaId    Int    @map("media_id")
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    Media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_watched")
@@ -94,6 +112,7 @@ model MediaReview {
     mediaId    Int    @map("media_id")
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    Media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_review")
@@ -116,20 +135,22 @@ model MediaWatchlist {
 
     Watchlist Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
     Activity  Activity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    Media     Media      @relation(fields: [mediaId], references: [mediaId])
 
     @@map("media_watchlisted")
 }
 
-enum Role {
-    admin
-    user
-}
+model Media {
+    mediaId    Int    @id @map("media_id")
+    title      String
+    posterPath String @map("poster_path")
 
-enum ActivityType {
-    like
-    review
-    rating
-    rewatch
-    watched
-    watchlist
+    Activity       Activity[]
+    MediaLike      MediaLike[]
+    MediaRating    MediaRating[]
+    MediaWatched   MediaWatched[]
+    MediaReview    MediaReview[]
+    MediaWatchlist MediaWatchlist[]
+
+    @@map("media")
 }

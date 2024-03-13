@@ -4,20 +4,36 @@ import { revalidatePath } from "next/cache";
 import prisma from "../../prisma/client";
 import { getUser } from "@/lib/authentication-functions";
 import { User } from "@supabase/supabase-js";
+import { Media } from "@prisma/client";
 
-export async function handleCreateNewRating(rating: number, mediaId: number) {
+export async function upsertMedia(media: Media) {
+  await prisma.media.upsert({
+    where: {
+      mediaId: media.mediaId,
+    },
+    update: {},
+    create: {
+      mediaId: media.mediaId,
+      posterPath: media.posterPath,
+      title: media.title,
+    },
+  });
+}
+
+export async function handleCreateNewRating(rating: number, media: Media) {
   const user = await getUser();
 
   if (!user) return null;
 
+  await upsertMedia(media);
   await prisma.activity.create({
     data: {
       userId: user.id,
       activityType: "rating",
-      mediaId: mediaId,
+      mediaId: media.mediaId,
       MediaRating: {
         create: {
-          mediaId: mediaId,
+          mediaId: media.mediaId,
           rating: rating,
         },
       },
@@ -27,17 +43,17 @@ export async function handleCreateNewRating(rating: number, mediaId: number) {
   revalidatePath("/");
 }
 
-export async function handleDeleteRating(mediaId: number) {
+export async function handleDeleteRating(media: Media) {
   const user = await getUser();
 
   if (!user) return null;
 
-  const rating = await prisma.activity.deleteMany({
+  await prisma.activity.deleteMany({
     where: {
       userId: user.id,
       activityType: "rating",
       MediaRating: {
-        mediaId: mediaId,
+        mediaId: media.mediaId,
       },
     },
   });
@@ -53,19 +69,20 @@ export async function createNewWatchlist(userId: string) {
   });
 }
 
-export async function handleWatched(mediaId: number) {
+export async function handleWatched(media: Media) {
   const user = await getUser();
 
   if (!user) return null;
 
+  await upsertMedia(media);
   await prisma.activity.create({
     data: {
       userId: user.id,
       activityType: "watched",
-      mediaId: mediaId,
+      mediaId: media.mediaId,
       MediaWatched: {
         create: {
-          mediaId: mediaId,
+          mediaId: media.mediaId,
         },
       },
     },
@@ -74,7 +91,7 @@ export async function handleWatched(mediaId: number) {
   revalidatePath("/");
 }
 
-export async function handleUnwatched(mediaId: number) {
+export async function handleUnwatched(media: Media) {
   const user = await getUser();
 
   if (!user) return null;
@@ -84,7 +101,7 @@ export async function handleUnwatched(mediaId: number) {
       userId: user.id,
       activityType: "watched",
       MediaWatched: {
-        mediaId: mediaId,
+        mediaId: media.mediaId,
       },
     },
   });
@@ -107,21 +124,22 @@ export async function getUserWatchlistId() {
   return watchlist.id;
 }
 
-export async function handleAddToWatchlist(mediaId: number) {
+export async function handleAddToWatchlist(media: Media) {
   const user = await getUser();
   const watchlistId = await getUserWatchlistId();
 
   if (!watchlistId) return null;
   if (!user) return null;
 
+  await upsertMedia(media);
   await prisma.activity.create({
     data: {
       userId: user.id,
       activityType: "watchlist",
-      mediaId: mediaId,
+      mediaId: media.mediaId,
       MediaWatchlist: {
         create: {
-          mediaId: mediaId,
+          mediaId: media.mediaId,
           watchlistId: watchlistId,
         },
       },
@@ -131,7 +149,7 @@ export async function handleAddToWatchlist(mediaId: number) {
   revalidatePath("/");
 }
 
-export async function handleRemoveFromWatchlist(mediaId: number) {
+export async function handleRemoveFromWatchlist(media: Media) {
   const user = await getUser();
   const watchlistId = await getUserWatchlistId();
 
@@ -143,7 +161,7 @@ export async function handleRemoveFromWatchlist(mediaId: number) {
       userId: user.id,
       activityType: "watchlist",
       MediaWatchlist: {
-        mediaId: mediaId,
+        mediaId: media.mediaId,
         watchlistId: watchlistId,
       },
     },
@@ -152,19 +170,20 @@ export async function handleRemoveFromWatchlist(mediaId: number) {
   revalidatePath("/");
 }
 
-export async function handleLike(mediaId: number) {
+export async function handleLike(media: Media) {
   const user = await getUser();
 
   if (!user) return null;
 
+  await upsertMedia(media);
   await prisma.activity.create({
     data: {
       userId: user.id,
       activityType: "like",
-      mediaId: mediaId,
+      mediaId: media.mediaId,
       MediaLike: {
         create: {
-          mediaId: mediaId,
+          mediaId: media.mediaId,
         },
       },
     },
@@ -173,7 +192,7 @@ export async function handleLike(mediaId: number) {
   revalidatePath("/");
 }
 
-export async function handleUnlike(mediaId: number) {
+export async function handleUnlike(media: Media) {
   const user = await getUser();
 
   if (!user) return null;
@@ -183,7 +202,7 @@ export async function handleUnlike(mediaId: number) {
       userId: user.id,
       activityType: "like",
       MediaLike: {
-        mediaId: mediaId,
+        mediaId: media.mediaId,
       },
     },
   });

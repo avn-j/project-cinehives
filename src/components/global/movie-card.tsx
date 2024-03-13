@@ -10,19 +10,19 @@ import { Badge } from "../ui/badge";
 import { MovieCardStatus } from "@/lib/enums";
 import LikeButton from "./icon-buttons/like-button";
 import { User } from "@supabase/supabase-js";
-import { checkRating } from "@/lib/db-actions";
 import WatchButton from "./icon-buttons/watch-button";
 import WatchlistButton from "./icon-buttons/watchlist-button";
 import RateButton from "./icon-buttons/rate-button";
 import { useState } from "react";
+import { Media } from "@prisma/client";
 
 export interface MovieProps {
   id: number;
+  title: string;
   src: string;
   alt: string;
   status?: MovieCardStatus;
   userActivity: string[];
-  user: User;
   rating: number;
 }
 
@@ -40,6 +40,12 @@ export default function MovieCard({ ...props }: MovieProps) {
     props.userActivity?.includes("rating") || false,
   );
   const [newRating, setNewRating] = useState<number | null>(null);
+
+  const mediaDbItem: Media = {
+    mediaId: props.id,
+    title: props.title,
+    posterPath: props.src,
+  };
 
   if (!props.status) {
     props.status = MovieCardStatus.None;
@@ -94,27 +100,27 @@ export default function MovieCard({ ...props }: MovieProps) {
           align="center"
           side="bottom"
           sideOffset={-55}
+          avoidCollisions={false}
         >
           <div className="flex justify-center gap-8">
             <LikeButton
-              mediaId={props.id}
+              media={mediaDbItem}
               liked={liked}
               toggleLikeHandler={toggleLikeHandler}
             />
             <WatchButton
-              mediaId={props.id}
+              media={mediaDbItem}
               watched={watched}
               toggleWatchedHandler={toggleWatchedHandler}
             />
             <WatchlistButton
-              mediaId={props.id}
+              media={mediaDbItem}
               onWatchlist={onWatchlist}
               toggleWatchlistHandler={toggleWatchlistHandler}
             />
             <RateButton
-              mediaId={props.id}
+              media={mediaDbItem}
               rated={rated}
-              user={props.user}
               rating={newRating ? newRating : props.rating}
               toggleRatedHandler={toggleRatedHandler}
               handleNewRating={handleNewRating}

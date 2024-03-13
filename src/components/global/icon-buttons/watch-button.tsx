@@ -2,9 +2,10 @@
 
 import { handleUnwatched, handleWatched } from "@/lib/db-actions";
 import { FaEye } from "react-icons/fa";
+import { Media } from "@prisma/client";
 
 interface WatchButtonProps {
-  mediaId: number;
+  media: Media;
   watched: boolean;
   toggleWatchedHandler: Function;
 }
@@ -13,9 +14,9 @@ export default function WatchButton({ ...props }: WatchButtonProps) {
   function handleToggle() {
     props.toggleWatchedHandler(!props.watched);
     if (!props.watched) {
-      handleWatched(props.mediaId);
+      handleWatched(props.media);
     } else {
-      handleUnwatched(props.mediaId);
+      handleUnwatched(props.media);
     }
   }
 
