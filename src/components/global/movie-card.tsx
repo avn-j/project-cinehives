@@ -97,6 +97,7 @@ export default function MovieCard({
               width={400}
               height={400}
               className="rounded border-2 border-green-50 border-opacity-15"
+              loading="eager"
             />
           </div>
         </HoverCardTrigger>
