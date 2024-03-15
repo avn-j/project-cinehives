@@ -1,3 +1,5 @@
+"use server";
+
 import { User } from "@supabase/supabase-js";
 import prisma from "../../prisma/client";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "./consts";
@@ -60,7 +62,7 @@ export async function buildMovieData(mediaDbData: any[], user: User) {
   return mediaObj;
 }
 
-export function buildBannerData(mediaDbData: any[]) {
+export async function buildBannerData(mediaDbData: any[]) {
   const bannerData = mediaDbData.map((media) => {
     return {
       id: media.id,

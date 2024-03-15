@@ -15,6 +15,7 @@ import WatchlistButton from "./icon-buttons/watchlist-button";
 import RateButton from "./icon-buttons/rate-button";
 import { useState } from "react";
 import { Media } from "@prisma/client";
+import { Skeleton } from "../ui/skeleton";
 
 export interface MovieProps {
   id: number;
@@ -24,9 +25,13 @@ export interface MovieProps {
   status?: MovieCardStatus;
   userActivity: string[];
   rating: number;
+  keepOpen?: boolean;
 }
 
-export default function MovieCard({ ...props }: MovieProps) {
+export default function MovieCard({
+  keepOpen = undefined,
+  ...props
+}: MovieProps) {
   const [liked, setLiked] = useState(
     props.userActivity?.includes("like") || false,
   );
@@ -72,8 +77,8 @@ export default function MovieCard({ ...props }: MovieProps) {
   }
 
   return (
-    <div>
-      <HoverCard openDelay={0} closeDelay={0}>
+    <>
+      <HoverCard openDelay={0} closeDelay={0} open={keepOpen}>
         <HoverCardTrigger asChild>
           <div className="relative">
             {props.status == MovieCardStatus.Reviewed && (
@@ -89,17 +94,17 @@ export default function MovieCard({ ...props }: MovieProps) {
             <Image
               src={props.src}
               alt={props.alt}
-              width={250}
-              height={0}
+              width={400}
+              height={400}
               className="rounded border-2 border-green-50 border-opacity-15"
             />
           </div>
         </HoverCardTrigger>
         <HoverCardContent
-          className="h-full rounded border-0 bg-black bg-opacity-70 shadow-none"
+          className="w-full rounded-xl border-0 bg-black bg-opacity-70 shadow-none"
           align="center"
           side="bottom"
-          sideOffset={-55}
+          sideOffset={-70}
           avoidCollisions={false}
         >
           <div className="flex justify-center gap-8">
@@ -122,6 +127,7 @@ export default function MovieCard({ ...props }: MovieProps) {
               media={mediaDbItem}
               rated={rated}
               rating={newRating ? newRating : props.rating}
+              toggleWatchedHandler={toggleWatchedHandler}
               toggleRatedHandler={toggleRatedHandler}
               handleNewRating={handleNewRating}
             />
@@ -135,6 +141,6 @@ export default function MovieCard({ ...props }: MovieProps) {
           profilePictureSrc={props.userRating.profilePictureSrc}
         />
       )} */}
-    </div>
+    </>
   );
 }

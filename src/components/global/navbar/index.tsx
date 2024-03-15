@@ -17,7 +17,7 @@ export default function Navbar() {
   const user = useUserContext();
 
   return (
-    <div className="fixed z-20 w-full border-b border-stone-900 bg-black py-6">
+    <div className="fixed z-20 w-full border-b border-stone-900 bg-stone-950 py-6">
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-12">
@@ -42,7 +42,7 @@ export default function Navbar() {
             </Button>
             <FaBell color="white" size="1.5rem" />
 
-            <div className="relative mr-4 h-16 w-16 rounded-full bg-stone-700">
+            <div className="relative mr-4 h-12 w-12 rounded-full bg-stone-700">
               <Image
                 src={user.profilePictureURL}
                 alt="Profile Picture"

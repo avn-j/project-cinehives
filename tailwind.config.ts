@@ -22,6 +22,7 @@ const config = {
         white: "#f8f8f8",
         primary: "#FFC300",
         accent: "#12152E",
+        secondary: "#F05019",
       },
       borderRadius: {
         lg: "var(--radius)",

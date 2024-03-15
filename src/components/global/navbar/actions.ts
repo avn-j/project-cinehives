@@ -1,5 +1,7 @@
+"use server";
+
 import { redirect } from "next/navigation";
 
-export function navigateToLogin() {
+export async function navigateToLogin() {
   redirect("/");
 }

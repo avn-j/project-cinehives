@@ -13,6 +13,7 @@ interface RateButtonProps {
   rating: number;
   toggleRatedHandler: Function;
   handleNewRating: Function;
+  toggleWatchedHandler: Function;
 }
 
 export default function RateButton({ ...props }: RateButtonProps) {
@@ -36,6 +37,7 @@ export default function RateButton({ ...props }: RateButtonProps) {
             initialRating={props.rating}
             media={props.media}
             toggleRatedHandler={props.toggleRatedHandler}
+            toggleWatchedHandler={props.toggleWatchedHandler}
             handleNewRating={props.handleNewRating}
           />
         </div>

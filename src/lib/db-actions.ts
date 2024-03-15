@@ -25,6 +25,8 @@ export async function handleCreateNewRating(rating: number, media: Media) {
 
   if (!user) return null;
 
+  await handleUnwatched(media);
+
   await upsertMedia(media);
   await prisma.activity.create({
     data: {
@@ -39,6 +41,8 @@ export async function handleCreateNewRating(rating: number, media: Media) {
       },
     },
   });
+
+  await handleWatched(media);
 
   revalidatePath("/");
 }

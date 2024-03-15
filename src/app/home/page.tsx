@@ -33,7 +33,9 @@ export default async function AppHome() {
     user,
   );
 
-  const refinedFeaturedMoviesData = buildBannerData(featuredMoviesData.results);
+  const refinedFeaturedMoviesData = await buildBannerData(
+    featuredMoviesData.results,
+  );
 
   return (
     <main>
