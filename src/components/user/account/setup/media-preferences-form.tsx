@@ -106,7 +106,7 @@ export default function MediaPreferencesForm({
             </p>
           </div>
           <h2 className="mt-8 text-3xl font-bold">{"Let's start!"}</h2>
-          <p className="mt-4 text-lg">We'd love to know more about you.</p>
+          <p className="mt-4 text-lg">{"We'd love to know more about you."}</p>
           <p className="mt-4 text-lg">
             What are your interests when it comes to media? Select your
             preferences.
