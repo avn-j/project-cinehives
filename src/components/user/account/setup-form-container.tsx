@@ -6,6 +6,7 @@ import { User } from "@supabase/supabase-js";
 import { useState } from "react";
 import TVSetupCarousel from "./setup/tv-setup-carousel";
 import MovieSetupCarousel from "./setup/movie-setup-carousel";
+import MediaPreferencesForm from "./setup/media-preferences-form";
 
 interface SetupFormContainerProps {
   movieCollection: Media[];
@@ -16,6 +17,7 @@ interface SetupFormContainerProps {
 
 export enum SETUP_FORMS_TYPES {
   setup,
+  preferences,
   movies,
   tvShows,
 }
@@ -24,7 +26,9 @@ export default function SetupFormContainer({
   ...props
 }: SetupFormContainerProps) {
   const [showForm, setShowForm] = useState(
-    props.profileStarted ? SETUP_FORMS_TYPES.movies : SETUP_FORMS_TYPES.setup,
+    props.profileStarted
+      ? SETUP_FORMS_TYPES.preferences
+      : SETUP_FORMS_TYPES.setup,
   );
 
   function handleFormChange(form: SETUP_FORMS_TYPES) {
@@ -35,6 +39,9 @@ export default function SetupFormContainer({
     <div className="flex justify-center">
       {showForm === SETUP_FORMS_TYPES.setup && (
         <SetupForm handleFormChange={handleFormChange} />
+      )}
+      {showForm === SETUP_FORMS_TYPES.preferences && (
+        <MediaPreferencesForm handleFormChange={handleFormChange} />
       )}
       {showForm === SETUP_FORMS_TYPES.movies && (
         <MovieSetupCarousel

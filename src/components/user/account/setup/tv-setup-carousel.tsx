@@ -126,14 +126,14 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
 
         <div className="flex gap-4">
           <Button
-            className="bg-secondary mt-8 w-1/3 px-6 text-lg text-stone-950"
+            className="bg-secondary mt-8 w-1/3 px-6 text-base text-stone-950"
             disabled={!carouselEnd}
             onClick={handleShowMore}
           >
             Show more
           </Button>
           <Button
-            className="mt-8 w-2/3 text-lg text-stone-950"
+            className="mt-8 w-2/3 text-base text-stone-950"
             onClick={handleFinish}
             disabled={finishClicked}
           >

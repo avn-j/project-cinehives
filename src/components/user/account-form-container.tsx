@@ -27,7 +27,7 @@ export default function AccountFormContainer() {
           <LoginForm />
           <Separator className="mt-2 bg-stone-500" />
           <div className="flex items-center">
-            <p className="">Dont have an account?</p>
+            <p>{"Don't have an account?"}</p>
             <Button
               variant="link"
               className="px-1 text-base"

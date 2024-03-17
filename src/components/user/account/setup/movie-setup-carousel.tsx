@@ -100,18 +100,9 @@ export default function MovieSetupCarousel({
       </div>
       <div className="flex w-1/2 flex-col justify-between">
         <div className="">
-          <div className="bg-accent w-full rounded-lg p-6">
-            <div className="flex items-center gap-4">
-              <FaCheckCircle size={25} />
-              <h2 className="text-3xl font-bold">Account setup successful</h2>
-            </div>
-
-            <p className="mt-4 text-wrap text-lg">
-              Your account has been successfully created. Your account <br />
-              has been successfully created.
-            </p>
-          </div>
-          <h2 className="mt-8 text-3xl font-bold">{"Let's start!"}</h2>
+          <h2 className="text-3xl font-bold">
+            {"Let's take a look at some movies you might've already seen"}
+          </h2>
           <p className="mt-4 text-xl">
             Hover over each movie to reveal the following action buttons:
           </p>
@@ -137,14 +128,14 @@ export default function MovieSetupCarousel({
 
         <div className="flex gap-4">
           <Button
-            className="bg-secondary mt-8 w-1/3 text-lg text-stone-950"
+            className="bg-secondary mt-8 w-1/3 text-base text-stone-950"
             disabled={!carouselEnd}
             onClick={handleShowMore}
           >
             Show more
           </Button>
           <Button
-            className="mt-8 w-2/3 text-lg text-stone-950"
+            className="mt-8 w-2/3 text-base text-stone-950"
             onClick={handleContinue}
           >
             Continue

@@ -19,13 +19,15 @@ export default function MediaCarousel({ ...props }: MediaCarouselProps) {
   return (
     <>
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold">{props.carouselTitle}</h3>
-        <Button variant="link" className="text-lg">
+        <h3 className="montserrat-test text-xl font-light">
+          {props.carouselTitle}
+        </h3>
+        <Button variant="link" className="text-base">
           SEE ALL
         </Button>
       </div>
       <Separator className="mb-4 mt-2 bg-stone-500" />
-      <Carousel opts={{ loop: true, slidesToScroll: 1 }}>
+      <Carousel opts={{ loop: true, slidesToScroll: 5 }}>
         <CarouselContent>
           {props.mediaCollection.map((media: Media) => {
             return (

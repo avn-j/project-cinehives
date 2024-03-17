@@ -19,7 +19,7 @@ import { z } from "zod";
 import { FaUpload } from "react-icons/fa6";
 import Image from "next/image";
 import defaultPicture from "../../../../../public/profile.jpeg";
-import { COUNTRIES_LIST } from "@/lib/countries";
+import { COUNTRIES_LIST } from "@/lib/consts";
 import {
   SelectItem,
   SelectTrigger,
@@ -85,7 +85,7 @@ export default function SetupForm({
 
     await updateProfile(formData);
     setLoading(false);
-    handleFormChange(SETUP_FORMS_TYPES.movies);
+    handleFormChange(SETUP_FORMS_TYPES.preferences);
   }
 
   function handlePressEnter(e: React.KeyboardEvent<HTMLLabelElement>) {
@@ -105,11 +105,13 @@ export default function SetupForm({
 
   return (
     <div className="mt-14 w-full">
-      <h2 className="text-3xl font-bold">Account Setup</h2>
-      <p className="mt-4 text-xl">
-        To get started with Wideshot, you will need to set up your account
-        first.
-      </p>
+      <div className="w-1/2">
+        <h2 className="text-3xl font-bold">Account Setup</h2>
+        <p className="mt-4 text-xl">
+          To get started with Cinehives, you will need to set up your account
+          first.
+        </p>
+      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <div className="flex gap-28">
@@ -259,7 +261,7 @@ export default function SetupForm({
                       <FormItem>
                         <FormLabel
                           htmlFor="profilePicture"
-                          className="focus:ring-primary flex cursor-pointer items-center justify-center rounded border border-stone-600 bg-stone-900 p-2 text-xs transition duration-100 hover:bg-stone-700 focus:outline-none focus:ring-1"
+                          className="focus:ring-primary flex cursor-pointer items-center justify-center rounded border border-stone-600 bg-stone-900 p-2 text-sm transition duration-100 hover:bg-stone-700 focus:outline-none focus:ring-1"
                           tabIndex={0}
                           onKeyDown={handlePressEnter}
                         >
@@ -275,7 +277,7 @@ export default function SetupForm({
                             id="profilePicture"
                             type="file"
                             onChangeCapture={handleImageChange}
-                            accept="image/png, image/jpg"
+                            accept="image/png, image/jpg, image/jpeg"
                             className="hidden"
                           />
                         </FormControl>
@@ -288,7 +290,7 @@ export default function SetupForm({
               </div>
               <Button
                 type="submit"
-                className="mt-12 px-16 py-6 text-lg text-black"
+                className="mt-12 px-16 py-6 text-base text-black"
                 disabled={loading}
               >
                 {loading ? "Creating your profile..." : "Continue"}

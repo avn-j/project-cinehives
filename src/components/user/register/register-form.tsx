@@ -121,7 +121,7 @@ export default function RegisterForm() {
             <Button
               type="submit"
               disabled={loading}
-              className=" mt-8 w-full py-6 text-lg text-black"
+              className=" mt-8 w-full py-6 text-base text-black"
             >
               Register
             </Button>

@@ -1,7 +1,5 @@
 import Navbar from "@/components/global/navbar";
 import Section from "@/components/global/layout/section";
-import Image from "next/image";
-import { FaStar } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
@@ -46,7 +44,7 @@ export default async function AppHome() {
       />
 
       <Section>
-        <h2 className="text-primary mb-16 mt-12 text-3xl">
+        <h2 className="text-primary mb-16 mt-12 text-4xl font-bold">
           Welcome, {profile.firstName}
         </h2>
 

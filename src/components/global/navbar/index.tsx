@@ -21,7 +21,7 @@ export default function Navbar() {
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-12">
-            <h1 className="text-primary text-4xl font-extrabold">Wideshot</h1>
+            <h1 className="text-primary text-4xl font-extrabold">Cinehives</h1>
 
             <ul className="flex gap-8 font-semibold text-white">
               <li>Home</li>
@@ -34,10 +34,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-8">
-            <Button
-              className="px-12 text-lg font-bold text-black"
-              onClick={handleLogout}
-            >
+            <Button className="px-12 text-sm text-black" onClick={handleLogout}>
               Logout
             </Button>
             <FaBell color="white" size="1.5rem" />
@@ -47,7 +44,7 @@ export default function Navbar() {
                 src={user.profilePictureURL}
                 alt="Profile Picture"
                 fill={true}
-                className="border-primary rounded-full border-2 object-fill"
+                className="border-primary rounded-full border-2 object-cover"
               />
             </div>
           </div>

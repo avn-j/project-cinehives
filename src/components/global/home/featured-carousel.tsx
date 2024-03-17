@@ -35,10 +35,10 @@ export default function FeaturedCarousel({ ...props }: FeaturedCarouselProps) {
                       <div className="py-6 text-3xl font-bold uppercase drop-shadow">
                         <p>FEATURED FILMS</p>
                       </div>
-                      <h3 className="text-3xl font-bold uppercase drop-shadow">
+                      <p className="text-3xl font-bold uppercase drop-shadow">
                         {releaseYear}
-                      </h3>
-                      <h2 className="text-6xl font-black drop-shadow">
+                      </p>
+                      <h2 className="banner-heading text-6xl font-black drop-shadow">
                         {media.title}
                       </h2>
                     </div>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DateTime } from "luxon";
-import { COUNTRIES_LIST } from "@/lib/countries";
+import { COUNTRIES_LIST } from "@/lib/consts";
 
 const passwordRegex = new RegExp(
   "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$",
@@ -124,4 +124,16 @@ export const setupFormSchemaServer = z.object({
       (country) => COUNTRIES_LIST.includes(country),
       "Not a valid country.",
     ),
+});
+
+export const MediaFormSchema = z.object({
+  items: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: "You have to select at least one item.",
+  }),
+});
+
+export const MediaSchema = z.object({
+  items: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: "You have to select at least one item.",
+  }),
 });

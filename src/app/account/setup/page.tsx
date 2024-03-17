@@ -33,7 +33,7 @@ export default async function AccountSetup() {
     <>
       <div className="w-full border-b border-stone-900 py-6">
         <div className="container mx-auto">
-          <h1 className="text-primary text-4xl font-extrabold">Wideshot</h1>
+          <h1 className="text-primary text-4xl font-extrabold">Cinehives</h1>
         </div>
       </div>
       <main>
