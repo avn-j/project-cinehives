@@ -3,7 +3,6 @@
 import prisma from "../../prisma/client";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function getUser() {

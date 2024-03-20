@@ -11,11 +11,12 @@ import { Media } from "@/lib/types";
 import MovieCard from "@/components/global/movie-card";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FaCheckCircle, FaEye, FaHeart, FaList, FaStar } from "react-icons/fa";
+import { FaEye, FaHeart, FaList, FaStar } from "react-icons/fa";
 import { fetchTopMovieData } from "@/lib/moviedb-actions";
-import { buildMovieData } from "@/lib/movie-data-builder";
+import { buildDataForMedias } from "@/lib/movie-data-builder";
 import { User } from "@supabase/supabase-js";
 import { SETUP_FORMS_TYPES } from "../setup-form-container";
+import { MediaType } from "@prisma/client";
 
 interface MediaSetupCarouselProps {
   initialMediaCollection: Media[];
@@ -35,9 +36,9 @@ export default function MovieSetupCarousel({
     const next = page + 1;
 
     const topRatedMovieData = await fetchTopMovieData(next);
-    const refinedTopRatedMovieData = await buildMovieData(
+    const refinedTopRatedMovieData = await buildDataForMedias(
       topRatedMovieData.results,
-      props.user,
+      props.user.id,
     );
 
     setMedia([...refinedTopRatedMovieData]);
@@ -88,6 +89,7 @@ export default function MovieSetupCarousel({
                       src={media.posterPath}
                       rating={media.rating}
                       userActivity={media.userActivity}
+                      mediaType={MediaType.film}
                     />
                   </div>
                 </CarouselItem>

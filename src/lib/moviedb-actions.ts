@@ -45,7 +45,7 @@ export async function fetchFeaturedData() {
 }
 
 export async function fetchTopMovieData(page: number) {
-  const url = `${MOVIE_API_BASE_URL}/discover/movie?Include_video=false&language=en-US&page=${page}&sort_by=vote_count.desc`;
+  const url = `${MOVIE_API_BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&page=${page}&sort_by=vote_count.desc`;
   const res = await fetch(url, {
     method: "GET",
     headers: {
@@ -59,7 +59,35 @@ export async function fetchTopMovieData(page: number) {
 }
 
 export async function fetchTopTVShowData(page: number) {
-  const url = `${MOVIE_API_BASE_URL}/discover/tv?Include_video=false&language=en-US&page=${page}&sort_by=vote_count.desc`;
+  const url = `${MOVIE_API_BASE_URL}/discover/tv?include_adult=false&include_video=false&language=en-US&page=${page}&sort_by=vote_count.desc`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${process.env.MOVIEDB_API_READ_TOKEN} `,
+    },
+    cache: "no-cache",
+  });
+
+  return res.json();
+}
+
+export async function fetchTrendingMovieData(page: number) {
+  const url = `${MOVIE_API_BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&page=${page}&sort_by=popularity.desc`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${process.env.MOVIEDB_API_READ_TOKEN} `,
+    },
+    cache: "no-cache",
+  });
+
+  return res.json();
+}
+
+export async function fetchMovieDetailsById(id: string) {
+  const url = `${MOVIE_API_BASE_URL}/movie/${id}?append_to_response=credits`;
   const res = await fetch(url, {
     method: "GET",
     headers: {

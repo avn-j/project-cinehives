@@ -8,9 +8,10 @@ import {
   fetchPopularTVData,
   fetchFeaturedData,
 } from "@/lib/moviedb-actions";
-import { buildBannerData, buildMovieData } from "@/lib/movie-data-builder";
-import MediaCarousel from "@/components/global/home/media-carousel";
-import FeaturedCarousel from "@/components/global/home/featured-carousel";
+import { buildBannerData, buildDataForMedias } from "@/lib/movie-data-builder";
+import MediaCarousel from "@/components/home/media-carousel";
+import FeaturedCarousel from "@/components/home/featured-carousel";
+import { MediaType } from "@prisma/client";
 
 export default async function AppHome() {
   const user = await getUser();
@@ -22,13 +23,13 @@ export default async function AppHome() {
   const popularTVData = await fetchPopularTVData();
   const featuredMoviesData = await fetchFeaturedData();
 
-  const refinedPopularMovieData = await buildMovieData(
+  const refinedPopularMovieData = await buildDataForMedias(
     popularMovieData.results,
-    user,
+    user.id,
   );
-  const refinedPopularTVData = await buildMovieData(
+  const refinedPopularTVData = await buildDataForMedias(
     popularTVData.results,
-    user,
+    user.id,
   );
 
   const refinedFeaturedMoviesData = await buildBannerData(
@@ -51,12 +52,14 @@ export default async function AppHome() {
         <MediaCarousel
           mediaCollection={refinedPopularMovieData}
           carouselTitle="Popular movies this week"
+          mediaType={MediaType.film}
         />
       </Section>
       <Section>
         <MediaCarousel
           mediaCollection={refinedPopularTVData}
           carouselTitle="Popular TV shows this week"
+          mediaType={MediaType.TV}
         />
       </Section>
       <Section>

@@ -126,14 +126,20 @@ export const setupFormSchemaServer = z.object({
     ),
 });
 
-export const MediaFormSchema = z.object({
+export const mediaFormSchema = z.object({
   items: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "You have to select at least one item.",
   }),
 });
 
-export const MediaSchema = z.object({
+export const mediaSchema = z.object({
   items: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "You have to select at least one item.",
+  }),
+});
+
+export const reviewSchema = z.object({
+  review: z.string().min(1, {
+    message: "Review cannot be empty",
   }),
 });

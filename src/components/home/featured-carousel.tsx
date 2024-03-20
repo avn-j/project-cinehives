@@ -4,14 +4,10 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
 import { BannerMedia } from "@/lib/types";
 import Image from "next/image";
-import { FaStar } from "react-icons/fa6";
 import Autoplay from "embla-carousel-autoplay";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface FeaturedCarouselProps {
   // TO-DO: Add type

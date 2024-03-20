@@ -21,6 +21,12 @@ enum ActivityType {
     watchlist
 }
 
+enum MediaType {
+    film
+    TV
+    anime
+}
+
 model Profile {
     id                String   @id @db.Uuid
     role              Role     @default(user)
@@ -108,8 +114,11 @@ model MediaWatched {
 }
 
 model MediaReview {
-    activityId String @id @unique @map("activity_id") @db.Uuid
-    mediaId    Int    @map("media_id")
+    activityId String   @id @unique @map("activity_id") @db.Uuid
+    mediaId    Int      @map("media_id")
+    review     String
+    rating     Int?
+    liked      Boolean?
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
     Media    Media    @relation(fields: [mediaId], references: [mediaId])
@@ -141,9 +150,10 @@ model MediaWatchlist {
 }
 
 model Media {
-    mediaId    Int    @id @map("media_id")
+    mediaId    Int       @id @map("media_id")
     title      String
-    posterPath String @map("poster_path")
+    posterPath String    @map("poster_path")
+    mediaType  MediaType @map("media_type")
 
     Activity       Activity[]
     MediaLike      MediaLike[]

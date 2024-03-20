@@ -7,7 +7,7 @@ import {
 } from "@/lib/authentication-functions";
 import SetupFormContainer from "@/components/user/account/setup-form-container";
 import { fetchTopMovieData, fetchTopTVShowData } from "@/lib/moviedb-actions";
-import { buildMovieData } from "@/lib/movie-data-builder";
+import { buildDataForMedias } from "@/lib/movie-data-builder";
 
 export default async function AccountSetup() {
   const user = await getUser();
@@ -16,15 +16,15 @@ export default async function AccountSetup() {
   if (profile) redirect("/home");
 
   const topRatedMovieData = await fetchTopMovieData(1);
-  const refinedTopRatedMovieData = await buildMovieData(
+  const refinedTopRatedMovieData = await buildDataForMedias(
     topRatedMovieData.results,
-    user,
+    user.id,
   );
 
   const topRatedTVData = await fetchTopTVShowData(1);
-  const refinedTopRatedTVData = await buildMovieData(
+  const refinedTopRatedTVData = await buildDataForMedias(
     topRatedTVData.results,
-    user,
+    user.id,
   );
 
   const hasProfileStarted = await checkProfileStarted(user.id);

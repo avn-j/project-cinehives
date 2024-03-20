@@ -13,9 +13,10 @@ import { User } from "@supabase/supabase-js";
 import WatchButton from "./icon-buttons/watch-button";
 import WatchlistButton from "./icon-buttons/watchlist-button";
 import RateButton from "./icon-buttons/rate-button";
-import { useState } from "react";
-import { Media } from "@prisma/client";
-import { Skeleton } from "../ui/skeleton";
+import { useEffect, useState } from "react";
+import { Media, MediaType } from "@prisma/client";
+import UserRating from "./user-rating";
+import Link from "next/link";
 
 export interface MovieProps {
   id: number;
@@ -25,13 +26,15 @@ export interface MovieProps {
   status?: MovieCardStatus;
   userActivity: string[];
   rating: number;
-  keepOpen?: boolean;
+  otherUserRatingActivity?: {
+    username: string;
+    profilePicture: string;
+    rating: number;
+  };
+  mediaType: MediaType;
 }
 
-export default function MovieCard({
-  keepOpen = undefined,
-  ...props
-}: MovieProps) {
+export default function MovieCard({ ...props }: MovieProps) {
   const [liked, setLiked] = useState(
     props.userActivity?.includes("like") || false,
   );
@@ -46,15 +49,18 @@ export default function MovieCard({
   );
   const [newRating, setNewRating] = useState<number | null>(null);
 
+  useEffect(() => {
+    setLiked(props.userActivity?.includes("like") || false);
+    setWatched(props.userActivity?.includes("watched") || false);
+    setOnWatchlist(props.userActivity?.includes("watchlist") || false);
+  }, [props.userActivity]);
+
   const mediaDbItem: Media = {
     mediaId: props.id,
     title: props.title,
     posterPath: props.src,
+    mediaType: props.mediaType,
   };
-
-  if (!props.status) {
-    props.status = MovieCardStatus.None;
-  }
 
   function toggleLikeHandler(liked: boolean) {
     setLiked(liked);
@@ -77,29 +83,19 @@ export default function MovieCard({
   }
 
   return (
-    <>
-      <HoverCard openDelay={0} closeDelay={0} open={keepOpen}>
+    <div className="">
+      <HoverCard openDelay={0} closeDelay={0}>
         <HoverCardTrigger asChild>
-          <div className="relative">
-            {props.status == MovieCardStatus.Reviewed && (
-              <Badge className="absolute left-3 top-3 rounded-sm text-sm uppercase text-black">
-                Reviewed
-              </Badge>
-            )}
-            {props.status == MovieCardStatus.Rewatched && (
-              <Badge className="absolute left-3 top-3 rounded-sm text-sm uppercase text-black">
-                Rewatched
-              </Badge>
-            )}
+          <Link href={`/${props.mediaType}/${props.id}`}>
             <Image
               src={props.src}
               alt={props.alt}
               width={400}
               height={400}
-              className="rounded border-2 border-green-50 border-opacity-15"
+              className="rounded border-2 border-green-50 border-opacity-15 object-cover"
               loading="eager"
             />
-          </div>
+          </Link>
         </HoverCardTrigger>
         <HoverCardContent
           className="w-full rounded-xl border-0 bg-black bg-opacity-70 shadow-none"
@@ -135,13 +131,13 @@ export default function MovieCard({
           </div>
         </HoverCardContent>
       </HoverCard>
-      {/* {props.userRating && (
+      {props.otherUserRatingActivity && (
         <UserRating
-          username={props.userRating.username}
-          rating={props.userRating.rating}
-          profilePictureSrc={props.userRating.profilePictureSrc}
+          username={props.otherUserRatingActivity.username}
+          rating={props.otherUserRatingActivity.rating}
+          profilePictureSrc={props.otherUserRatingActivity.profilePicture}
         />
-      )} */}
-    </>
+      )}
+    </div>
   );
 }

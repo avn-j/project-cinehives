@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  handleAddToWatchlist,
-  handleRemoveFromWatchlist,
-} from "@/lib/db-actions";
+import { addToUserWatchlist, removeFromUserWatchlist } from "@/lib/db-actions";
 import { FaList } from "react-icons/fa";
 import { Media } from "@prisma/client";
 
@@ -17,9 +14,9 @@ export default function WatchlistButton({ ...props }: WatchlistButtonProps) {
   function handleToggle() {
     props.toggleWatchlistHandler(!props.onWatchlist);
     if (!props.onWatchlist) {
-      handleAddToWatchlist(props.media);
+      addToUserWatchlist(props.media);
     } else {
-      handleRemoveFromWatchlist(props.media);
+      removeFromUserWatchlist(props.media);
     }
   }
 

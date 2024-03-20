@@ -13,9 +13,10 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FaEye, FaHeart, FaList, FaStar } from "react-icons/fa";
 import { fetchTopTVShowData } from "@/lib/moviedb-actions";
-import { buildMovieData } from "@/lib/movie-data-builder";
+import { buildDataForMedias } from "@/lib/movie-data-builder";
 import { User } from "@supabase/supabase-js";
 import { setProfileFinished } from "@/lib/authentication-functions";
+import { MediaType } from "@prisma/client";
 
 interface MediaSetupCarouselProps {
   initialMediaCollection: Media[];
@@ -34,9 +35,9 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
     const next = page + 1;
 
     const topRatedMovieData = await fetchTopTVShowData(next);
-    const refinedTopRatedMovieData = await buildMovieData(
+    const refinedTopRatedMovieData = await buildDataForMedias(
       topRatedMovieData.results,
-      props.user,
+      props.user.id,
     );
 
     setMedia([...refinedTopRatedMovieData]);
@@ -88,6 +89,7 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
                       src={media.posterPath}
                       rating={media.rating}
                       userActivity={media.userActivity}
+                      mediaType={MediaType.TV}
                     />
                   </div>
                 </CarouselItem>

@@ -1,4 +1,4 @@
-import { handleLike, handleUnlike } from "@/lib/db-actions";
+import { createMediaLike, deleteMediaLike } from "@/lib/db-actions";
 import { Media } from "@prisma/client";
 import { FaHeart } from "react-icons/fa";
 
@@ -13,9 +13,9 @@ export default function LikeButton({ ...props }: LikeButtonProps) {
     props.toggleLikeHandler(!props.liked);
 
     if (!props.liked) {
-      handleLike(props.media);
+      createMediaLike(props.media);
     } else {
-      handleUnlike(props.media);
+      deleteMediaLike(props.media);
     }
   }
 

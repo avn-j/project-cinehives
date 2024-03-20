@@ -11,14 +11,16 @@ export default function UserRating({ ...props }: UserRatingProps) {
   }
 
   return (
-    <div className="flex items-center">
-      <Image
-        src="/profile.jpeg"
-        height={50}
-        width={50}
-        alt="Profile Picture"
-        className="border-primary mt-3 rounded-full"
-      />
+    <div className="mt-2 flex items-center">
+      <div className="relative h-14 w-14 rounded-full bg-stone-700">
+        <Image
+          src={props.profilePictureSrc}
+          alt={props.username}
+          fill={true}
+          objectFit="cover"
+          className="border-primary rounded-full border-2"
+        />
+      </div>
       <div className="ml-2">
         <span className="font-bold">{props.username}</span>
         <div className="flex gap-0.5">

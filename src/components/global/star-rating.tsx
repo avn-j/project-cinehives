@@ -1,6 +1,6 @@
 "use client";
 
-import { handleCreateNewRating, handleDeleteRating } from "@/lib/db-actions";
+import { createNewRating, deleteRating } from "@/lib/db-actions";
 import { Media } from "@prisma/client";
 import { MouseEvent, useRef, useState } from "react";
 import { FaStar, FaRegStar, FaXmark } from "react-icons/fa6";
@@ -39,7 +39,7 @@ export default function StarRating({ ...props }: StarRatingProps) {
 
   function handleClear(e: MouseEvent) {
     props.handleNewRating(-1);
-    handleDeleteRating(props.media);
+    deleteRating(props.media);
     setActiveStar(-1);
     setHoverActiveStar(-1);
     props.toggleRatedHandler(false);
@@ -50,9 +50,9 @@ export default function StarRating({ ...props }: StarRatingProps) {
 
     if (rating == activeStar) return;
 
-    handleDeleteRating(props.media);
+    deleteRating(props.media);
     setActiveStar(rating);
-    handleCreateNewRating(rating, props.media);
+    createNewRating(rating, props.media);
 
     props.toggleRatedHandler(true);
     props.handleNewRating(rating);

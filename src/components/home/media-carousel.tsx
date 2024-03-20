@@ -9,10 +9,12 @@ import { Media } from "@/lib/types";
 import MovieCard from "@/components/global/movie-card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { MediaType } from "@prisma/client";
 
 interface MediaCarouselProps {
   mediaCollection: Media[];
   carouselTitle: string;
+  mediaType: MediaType;
 }
 
 export default function MediaCarousel({ ...props }: MediaCarouselProps) {
@@ -39,6 +41,7 @@ export default function MediaCarousel({ ...props }: MediaCarouselProps) {
                   src={media.posterPath}
                   rating={media.rating}
                   userActivity={media.userActivity}
+                  mediaType={props.mediaType}
                 />
               </CarouselItem>
             );

@@ -3,15 +3,16 @@
 import { User } from "@supabase/supabase-js";
 import prisma from "../../prisma/client";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "./consts";
+import { revalidatePath } from "next/cache";
 
-export async function buildMovieData(mediaDbData: any[], user: User) {
+export async function buildDataForMedias(mediaDbData: any[], userId: string) {
   const mediaIds = mediaDbData.map((media) => {
     return media.id;
   });
 
   const activityResult = await prisma.activity.findMany({
     where: {
-      userId: user.id,
+      userId: userId,
       mediaId: {
         in: mediaIds,
       },
@@ -23,7 +24,7 @@ export async function buildMovieData(mediaDbData: any[], user: User) {
       MediaRating: true,
     },
     where: {
-      userId: user.id,
+      userId: userId,
       mediaId: {
         in: mediaIds,
       },
@@ -49,7 +50,7 @@ export async function buildMovieData(mediaDbData: any[], user: User) {
     mediaRatings[result.mediaId] = result.MediaRating?.rating;
   });
 
-  const mediaObj = mediaDbData.map((media) => {
+  const dataObj = mediaDbData.map((media) => {
     return {
       id: media.id,
       title: media.title || media.name,
@@ -59,7 +60,7 @@ export async function buildMovieData(mediaDbData: any[], user: User) {
     };
   });
 
-  return mediaObj;
+  return dataObj;
 }
 
 export async function buildBannerData(mediaDbData: any[]) {
@@ -73,4 +74,40 @@ export async function buildBannerData(mediaDbData: any[]) {
   });
 
   return bannerData.slice(0, 5);
+}
+
+export async function buildDataForMedia(media: any, userId: string) {
+  const activityResult = await prisma.activity.findMany({
+    where: {
+      userId: userId,
+      mediaId: media.id,
+    },
+  });
+
+  const ratingResult = await prisma.activity.findFirst({
+    include: {
+      MediaRating: true,
+    },
+    where: {
+      userId: userId,
+      mediaId: media.id,
+      MediaRating: {
+        mediaId: media.id,
+      },
+    },
+  });
+
+  const userActivity: string[] = [];
+
+  activityResult.forEach((result) => {
+    userActivity.push(result.activityType);
+  });
+
+  return {
+    id: media.id,
+    title: media.title || media.name,
+    posterPath: MOVIE_DB_IMG_PATH_PREFIX + media.poster_path,
+    rating: ratingResult?.MediaRating?.rating || -1,
+    userActivity: userActivity || null,
+  };
 }
