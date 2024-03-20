@@ -117,7 +117,7 @@ model MediaReview {
     activityId String   @id @unique @map("activity_id") @db.Uuid
     mediaId    Int      @map("media_id")
     review     String
-    rating     Int?
+    rating     Float?
     liked      Boolean?
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)

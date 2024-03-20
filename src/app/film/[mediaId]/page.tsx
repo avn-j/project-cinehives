@@ -230,13 +230,11 @@ export default async function FilmPage({
             </Accordion>
           </div>
           <div className="col-span-2 mt-40">
-            <div className="flex items-end gap-2">
-              <h1 className="text-4xl font-bold">
-                {title} {original_title !== title ? `(${original_title})` : ""}
-              </h1>
-              <p className="text-lg">Directed by {director.name}</p>
-            </div>
+            <h1 className=" text-4xl font-bold">
+              {title} {original_title !== title ? `(${original_title})` : ""}
+            </h1>
             <h2 className="mt-2 text-3xl"> ({release_date.split("-")[0]})</h2>
+            <p className="mt-2 text-lg">Directed by {director.name}</p>
             <p className="mt-2">{runtime} mins</p>
             <div className="mt-2 flex gap-2">
               <p className="text-xl">

@@ -8,7 +8,6 @@ import { Media } from "@prisma/client";
 import { buildDataForMedias } from "./movie-data-builder";
 import { reviewSchema } from "@/schemas/schemas";
 import { z } from "zod";
-import { AirplayIcon } from "lucide-react";
 
 export async function createNewMedia(media: Media) {
   await prisma.media.upsert({
@@ -48,6 +47,8 @@ export async function createNewRating(rating: number, media: Media) {
   });
 
   await createNewWatched(media);
+
+  revalidatePath("/");
 }
 
 export async function deleteRating(media: Media) {
@@ -64,6 +65,8 @@ export async function deleteRating(media: Media) {
       },
     },
   });
+
+  revalidatePath("/");
 }
 
 export async function createNewWatchlist(userId: string) {
@@ -385,6 +388,8 @@ export async function createNewMediaReview(
   if (!result.success) return false;
   const user = await getUser();
   if (!user) return false;
+
+  console.log(rating);
 
   await createNewMedia(media);
 

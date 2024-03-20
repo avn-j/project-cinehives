@@ -34,7 +34,8 @@ export default function AverageMediaRating({
             </TooltipTrigger>
             <TooltipContent side="bottom" className="bg-accent">
               <p>
-                An average of {props.rating} based on {props.count} users
+                An average of {props.rating.toFixed(2)} based on {props.count}
+                users
               </p>
             </TooltipContent>
           </Tooltip>

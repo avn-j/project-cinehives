@@ -53,6 +53,7 @@ export default function MovieCard({ ...props }: MovieProps) {
     setLiked(props.userActivity?.includes("like") || false);
     setWatched(props.userActivity?.includes("watched") || false);
     setOnWatchlist(props.userActivity?.includes("watchlist") || false);
+    setRated(props.userActivity?.includes("rating") || false);
   }, [props.userActivity]);
 
   const mediaDbItem: Media = {
