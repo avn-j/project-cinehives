@@ -21,14 +21,14 @@ export async function buildDataForMedias(mediaDbData: any[], userId: string) {
 
   const ratingResult = await prisma.activity.findMany({
     include: {
-      MediaRating: true,
+      mediaRating: true,
     },
     where: {
       userId: userId,
       mediaId: {
         in: mediaIds,
       },
-      MediaRating: {
+      mediaRating: {
         mediaId: {
           in: mediaIds,
         },
@@ -47,7 +47,7 @@ export async function buildDataForMedias(mediaDbData: any[], userId: string) {
   });
 
   ratingResult.forEach((result) => {
-    mediaRatings[result.mediaId] = result.MediaRating?.rating;
+    mediaRatings[result.mediaId] = result.mediaRating?.rating;
   });
 
   const dataObj = mediaDbData.map((media) => {
@@ -86,12 +86,12 @@ export async function buildDataForMedia(media: any, userId: string) {
 
   const ratingResult = await prisma.activity.findFirst({
     include: {
-      MediaRating: true,
+      mediaRating: true,
     },
     where: {
       userId: userId,
       mediaId: media.id,
-      MediaRating: {
+      mediaRating: {
         mediaId: media.id,
       },
     },
@@ -107,7 +107,7 @@ export async function buildDataForMedia(media: any, userId: string) {
     id: media.id,
     title: media.title || media.name,
     posterPath: MOVIE_DB_IMG_PATH_PREFIX + media.poster_path,
-    rating: ratingResult?.MediaRating?.rating || -1,
+    rating: ratingResult?.mediaRating?.rating || -1,
     userActivity: userActivity || null,
   };
 }

@@ -180,7 +180,7 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
                             />
                           </FormControl>
                           <FormLabel className="text-sm">
-                            Watched this film before
+                            Watched this before
                           </FormLabel>
                         </div>
                         <FormMessage className="text-red-500" />

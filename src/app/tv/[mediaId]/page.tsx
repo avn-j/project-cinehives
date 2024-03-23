@@ -74,8 +74,6 @@ export default async function TVPage({
   const crew: any[] = result.aggregate_credits.crew;
   const watched = mediaData.userActivity.includes("watched");
 
-  console.log(watched);
-
   const castByCharacters = cast.map((member: any) => {
     const characters: string[] = [];
 
@@ -143,8 +141,8 @@ export default async function TVPage({
                 {/* TODO: Add tooltips */}
                 <FaEye size={20} className="text-primary" />
                 <p className="text-xl">
-                  {interactions?._count.MediaWatched
-                    ? interactions?._count.MediaWatched
+                  {interactions?._count.mediaWatched
+                    ? interactions?._count.mediaWatched
                     : 0}
                 </p>
               </div>
@@ -152,8 +150,8 @@ export default async function TVPage({
                 {/* TODO: Add tooltips */}
                 <FaHeart size={20} className="text-red-500" />
                 <p className="text-xl">
-                  {interactions?._count.MediaLike
-                    ? interactions?._count.MediaLike
+                  {interactions?._count.mediaLike
+                    ? interactions?._count.mediaLike
                     : 0}
                 </p>
               </div>
@@ -161,8 +159,8 @@ export default async function TVPage({
                 {/* TODO: Add tooltips */}
                 <FaList size={20} className="text-primary" />
                 <p className="text-xl">
-                  {interactions?._count.MediaWatchlist
-                    ? interactions?._count.MediaWatchlist
+                  {interactions?._count.mediaWatchlist
+                    ? interactions?._count.mediaWatchlist
                     : 0}
                 </p>
               </div>
@@ -285,31 +283,30 @@ export default async function TVPage({
 
             {userReview.length !== 0 && (
               <div className="mt-16">
-                <h2 className="text-xl">Your Review</h2>
+                <h2 className="text-xl">Your Reviews</h2>
                 <Separator className="my-2 bg-stone-50" />
                 <div className="flex flex-col gap-2">
                   {userReview.map((review, index) => {
                     const postedDate = DateTime.fromJSDate(
-                      review.Activity.createdAt,
+                      review.activity.createdAt,
                     ).toFormat("DD");
-
+                    const hasLiked = review.activity.activityLikes.some(
+                      (value) => {
+                        return value.user.id === user.id;
+                      },
+                    );
+                    const { media, activity, ...reviewContent } = review;
                     return (
                       <ReviewBlock
-                        review={{
-                          activityId: review.activityId,
-                          liked: review.liked,
-                          mediaId: review.Media.mediaId,
-                          rating: review.rating,
-                          review: review.review,
-                          spoiler: review.spoiler,
-                          rewatched: review.rewatched,
-                        }}
-                        user={review.Activity.user}
+                        review={{ mediaId: media.mediaId, ...reviewContent }}
+                        reviewUser={activity.user}
                         date={postedDate}
                         key={index}
-                        media={mediaDbItem}
-                        ownReview
+                        media={media}
                         watched={watched}
+                        likes={activity.activityLikes}
+                        hasLiked={hasLiked}
+                        ownReview
                       />
                     );
                   })}
@@ -325,24 +322,22 @@ export default async function TVPage({
             <div className="flex flex-col gap-2">
               {recentReviews.map((review, index) => {
                 const postedDate = DateTime.fromJSDate(
-                  review.Activity.createdAt,
+                  review.activity.createdAt,
                 ).toFormat("DD");
+                const hasLiked = review.activity.activityLikes.some((value) => {
+                  return value.user.id === user.id;
+                });
+                const { media, activity, ...reviewContent } = review;
                 return (
                   <ReviewBlock
-                    review={{
-                      activityId: review.activityId,
-                      liked: review.liked,
-                      mediaId: review.Media.mediaId,
-                      rating: review.rating,
-                      review: review.review,
-                      spoiler: review.spoiler,
-                      rewatched: review.rewatched,
-                    }}
-                    user={review.Activity.user}
+                    review={{ mediaId: media.mediaId, ...reviewContent }}
+                    reviewUser={activity.user}
                     date={postedDate}
                     key={index}
-                    media={mediaDbItem}
+                    media={media}
                     watched={watched}
+                    likes={activity.activityLikes}
+                    hasLiked={hasLiked}
                   />
                 );
               })}

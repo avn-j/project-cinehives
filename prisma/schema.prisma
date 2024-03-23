@@ -40,9 +40,9 @@ model Profile {
     profileCreated    Boolean  @default(false) @map("profile_created")
     profilePictureURL String   @default("") @map("profile_picture_url")
 
-    Activity      Activity[]
-    ActivityLikes ActivityLike[]
-    Watchlist     Watchlist?
+    activity        Activity[]
+    likedActivities ActivityLike[]
+    watchlist       Watchlist?
 
     @@unique([email, username])
     @@map("profile")
@@ -57,13 +57,13 @@ model Activity {
     activityType ActivityType @map("activity_type")
 
     user           Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
-    ActivityLikes  ActivityLike[]
-    MediaLike      MediaLike?
-    MediaRating    MediaRating?
-    MediaWatched   MediaWatched?
-    MediaReview    MediaReview?
-    MediaWatchlist MediaWatchlist?
-    Media          Media           @relation(fields: [mediaId], references: [mediaId])
+    activityLikes  ActivityLike[]
+    mediaLike      MediaLike?
+    mediaRating    MediaRating?
+    mediaWatched   MediaWatched?
+    mediaReview    MediaReview?
+    mediaWatchlist MediaWatchlist?
+    media          Media           @relation(fields: [mediaId], references: [mediaId])
 
     @@index(userId)
     @@map("activity")
@@ -73,8 +73,8 @@ model ActivityLike {
     activityId String @id @unique @map("activity_id") @db.Uuid
     userId     String @map("user_id") @db.Uuid
 
-    Activity Activity @relation(fields: [activityId], references: [id])
-    User     Profile  @relation(fields: [userId], references: [id])
+    activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    user     Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@map("activity_like")
 }
@@ -83,8 +83,8 @@ model MediaLike {
     activityId String @id @unique @map("activity_id") @db.Uuid
     mediaId    Int    @map("media_id")
 
-    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    Media    Media    @relation(fields: [mediaId], references: [mediaId])
+    activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_like")
@@ -95,8 +95,8 @@ model MediaRating {
     mediaId    Int    @map("media_id")
     rating     Float
 
-    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    Media    Media    @relation(fields: [mediaId], references: [mediaId])
+    activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_rating")
@@ -106,8 +106,8 @@ model MediaWatched {
     activityId String @id @unique @map("activity_id") @db.Uuid
     mediaId    Int    @map("media_id")
 
-    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    Media    Media    @relation(fields: [mediaId], references: [mediaId])
+    activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_watched")
@@ -122,8 +122,8 @@ model MediaReview {
     spoiler    Boolean @default(false)
     rewatched  Boolean @default(false)
 
-    Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    Media    Media    @relation(fields: [mediaId], references: [mediaId])
+    activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    media    Media    @relation(fields: [mediaId], references: [mediaId])
 
     @@index(mediaId)
     @@map("media_review")
@@ -133,8 +133,8 @@ model Watchlist {
     id     String @id @default(uuid()) @db.Uuid
     userId String @unique @map("user_id") @db.Uuid
 
-    Profile Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
-    Media   MediaWatchlist[]
+    user  Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    media MediaWatchlist[]
 
     @@map("watchlist")
 }
@@ -144,9 +144,9 @@ model MediaWatchlist {
     watchlistId String @map("watchlist_id") @db.Uuid
     mediaId     Int    @map("media_id")
 
-    Watchlist Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
-    Activity  Activity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    Media     Media      @relation(fields: [mediaId], references: [mediaId])
+    watchlist Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+    activity  Activity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    media     Media      @relation(fields: [mediaId], references: [mediaId])
 
     @@map("media_watchlisted")
 }
@@ -157,12 +157,12 @@ model Media {
     posterPath String    @map("poster_path")
     mediaType  MediaType @map("media_type")
 
-    Activity       Activity[]
-    MediaLike      MediaLike[]
-    MediaRating    MediaRating[]
-    MediaWatched   MediaWatched[]
-    MediaReview    MediaReview[]
-    MediaWatchlist MediaWatchlist[]
+    activity       Activity[]
+    mediaLike      MediaLike[]
+    mediaRating    MediaRating[]
+    mediaWatched   MediaWatched[]
+    mediaReview    MediaReview[]
+    mediaWatchlist MediaWatchlist[]
 
     @@map("media")
 }

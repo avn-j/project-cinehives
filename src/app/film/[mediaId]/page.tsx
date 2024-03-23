@@ -77,9 +77,9 @@ export default async function FilmPage({
   })[0];
   const cast = result.credits.cast;
   const crew: any[] = result.credits.crew;
-  const watchedCount = interactions?._count.MediaWatched || 0;
-  const likeCount = interactions?._count.MediaLike || 0;
-  const watchlistCount = interactions?._count.MediaWatchlist || 0;
+  const watchedCount = interactions?._count.mediaWatched || 0;
+  const likeCount = interactions?._count.mediaLike || 0;
+  const watchlistCount = interactions?._count.mediaWatchlist || 0;
   const crewByDepartments = crew.reduce((x, y) => {
     (x[y.department] = x[y.department] || []).push(y);
 
@@ -245,31 +245,31 @@ export default async function FilmPage({
 
             {userReview.length !== 0 && (
               <div className="mt-16">
-                <h2 className="text-xl">Your Review</h2>
+                <h2 className="text-xl">Your Reviews</h2>
                 <Separator className="my-2 bg-stone-50" />
                 <div className="flex flex-col gap-2">
                   {userReview.map((review, index) => {
                     const postedDate = DateTime.fromJSDate(
-                      review.Activity.createdAt,
+                      review.activity.createdAt,
                     ).toFormat("DD");
+                    const hasLiked = review.activity.activityLikes.some(
+                      (value) => {
+                        return value.user.id === user.id;
+                      },
+                    );
+                    const { media, activity, ...reviewContent } = review;
 
                     return (
                       <ReviewBlock
-                        review={{
-                          activityId: review.activityId,
-                          liked: review.liked,
-                          mediaId: review.Media.mediaId,
-                          rating: review.rating,
-                          review: review.review,
-                          spoiler: review.spoiler,
-                          rewatched: review.rewatched,
-                        }}
-                        user={review.Activity.user}
+                        review={{ mediaId: media.mediaId, ...reviewContent }}
+                        reviewUser={activity.user}
                         date={postedDate}
                         key={index}
-                        media={mediaDbItem}
+                        media={media}
                         ownReview
                         watched={watched}
+                        likes={activity.activityLikes}
+                        hasLiked={hasLiked}
                       />
                     );
                   })}
@@ -285,24 +285,22 @@ export default async function FilmPage({
             <div className="flex flex-col gap-2">
               {recentReviews.map((review, index) => {
                 const postedDate = DateTime.fromJSDate(
-                  review.Activity.createdAt,
+                  review.activity.createdAt,
                 ).toFormat("DD");
+                const hasLiked = review.activity.activityLikes.some((value) => {
+                  return value.user.id === user.id;
+                });
+                const { media, activity, ...reviewContent } = review;
                 return (
                   <ReviewBlock
-                    review={{
-                      activityId: review.activityId,
-                      liked: review.liked,
-                      mediaId: review.Media.mediaId,
-                      rating: review.rating,
-                      review: review.review,
-                      spoiler: review.spoiler,
-                      rewatched: review.rewatched,
-                    }}
-                    user={review.Activity.user}
+                    review={{ mediaId: media.mediaId, ...reviewContent }}
+                    reviewUser={activity.user}
                     date={postedDate}
                     key={index}
-                    media={mediaDbItem}
+                    media={media}
                     watched={watched}
+                    likes={activity.activityLikes}
+                    hasLiked={hasLiked}
                   />
                 );
               })}

@@ -37,7 +37,7 @@ export async function createNewRating(rating: number, media: Media) {
       userId: user.id,
       activityType: "rating",
       mediaId: media.mediaId,
-      MediaRating: {
+      mediaRating: {
         create: {
           mediaId: media.mediaId,
           rating: rating,
@@ -60,7 +60,7 @@ export async function deleteRating(media: Media) {
     where: {
       userId: user.id,
       activityType: "rating",
-      MediaRating: {
+      mediaRating: {
         mediaId: media.mediaId,
       },
     },
@@ -88,7 +88,7 @@ export async function createNewWatched(media: Media) {
       userId: user.id,
       activityType: "watched",
       mediaId: media.mediaId,
-      MediaWatched: {
+      mediaWatched: {
         create: {
           mediaId: media.mediaId,
         },
@@ -108,7 +108,7 @@ export async function deleteWatched(media: Media) {
     where: {
       userId: user.id,
       activityType: "watched",
-      MediaWatched: {
+      mediaWatched: {
         mediaId: media.mediaId,
       },
     },
@@ -145,7 +145,7 @@ export async function addToUserWatchlist(media: Media) {
       userId: user.id,
       activityType: "watchlist",
       mediaId: media.mediaId,
-      MediaWatchlist: {
+      mediaWatchlist: {
         create: {
           mediaId: media.mediaId,
           watchlistId: watchlistId,
@@ -168,7 +168,7 @@ export async function removeFromUserWatchlist(media: Media) {
     where: {
       userId: user.id,
       activityType: "watchlist",
-      MediaWatchlist: {
+      mediaWatchlist: {
         mediaId: media.mediaId,
         watchlistId: watchlistId,
       },
@@ -189,7 +189,7 @@ export async function createMediaLike(media: Media) {
       userId: user.id,
       activityType: "like",
       mediaId: media.mediaId,
-      MediaLike: {
+      mediaLike: {
         create: {
           mediaId: media.mediaId,
         },
@@ -209,7 +209,7 @@ export async function deleteMediaLike(media: Media) {
     where: {
       userId: user.id,
       activityType: "like",
-      MediaLike: {
+      mediaLike: {
         mediaId: media.mediaId,
       },
     },
@@ -227,7 +227,7 @@ export async function checkLiked(mediaId: number, user: User) {
     where: {
       userId: user.id,
       activityType: "like",
-      MediaLike: {
+      mediaLike: {
         mediaId: mediaId,
       },
     },
@@ -244,7 +244,7 @@ export async function checkWatched(mediaId: number, user: User) {
     where: {
       userId: user.id,
       activityType: "watched",
-      MediaWatched: {
+      mediaWatched: {
         mediaId: mediaId,
       },
     },
@@ -259,7 +259,7 @@ export async function checkOnWatchlist(mediaId: number, user: User) {
   const onWatchlist = await prisma.watchlist.findUnique({
     where: {
       userId: user.id,
-      Media: {
+      media: {
         some: {
           mediaId: mediaId,
         },
@@ -275,20 +275,20 @@ export async function checkRating(mediaId: number, user: User) {
 
   const rating = await prisma.activity.findFirst({
     include: {
-      MediaRating: true,
+      mediaRating: true,
     },
     where: {
       userId: user.id,
       activityType: "rating",
-      MediaRating: {
+      mediaRating: {
         mediaId: mediaId,
       },
     },
   });
 
-  if (!rating || !rating.MediaRating) return -1;
+  if (!rating || !rating.mediaRating) return -1;
 
-  return rating.MediaRating.rating;
+  return rating.mediaRating.rating;
 }
 
 export async function fetchRecentTVActivityRating(userId: string) {
@@ -298,7 +298,7 @@ export async function fetchRecentTVActivityRating(userId: string) {
     },
     where: {
       activityType: "rating",
-      Media: {
+      media: {
         mediaType: "tv",
       },
     },
@@ -309,21 +309,21 @@ export async function fetchRecentTVActivityRating(userId: string) {
           profilePictureURL: true,
         },
       },
-      Media: true,
-      MediaRating: true,
+      media: true,
+      mediaRating: true,
     },
     take: 5,
   });
 
   const media = activity.map((activity) => {
     return {
-      id: activity.Media.mediaId,
-      title: activity.Media.title,
-      poster_path: activity.Media.posterPath,
+      id: activity.media.mediaId,
+      title: activity.media.title,
+      poster_path: activity.media.posterPath,
       otherUserActivity: {
         username: activity.user.username,
         profilePicture: activity.user.profilePictureURL,
-        rating: activity.MediaRating?.rating || -1,
+        rating: activity.mediaRating?.rating || -1,
       },
     };
   });
@@ -348,7 +348,7 @@ export async function fetchRecentFilmActivityRating(userId: string) {
     },
     where: {
       activityType: "rating",
-      Media: {
+      media: {
         mediaType: "film",
       },
     },
@@ -359,21 +359,21 @@ export async function fetchRecentFilmActivityRating(userId: string) {
           profilePictureURL: true,
         },
       },
-      Media: true,
-      MediaRating: true,
+      media: true,
+      mediaRating: true,
     },
     take: 5,
   });
 
   const media = activity.map((activity) => {
     return {
-      id: activity.Media.mediaId,
-      title: activity.Media.title,
-      poster_path: activity.Media.posterPath,
+      id: activity.media.mediaId,
+      title: activity.media.title,
+      poster_path: activity.media.posterPath,
       otherUserActivity: {
         username: activity.user.username,
         profilePicture: activity.user.profilePictureURL,
-        rating: activity.MediaRating?.rating || -1,
+        rating: activity.mediaRating?.rating || -1,
       },
     };
   });
@@ -417,11 +417,11 @@ export async function getAllInteractionsForMedia(mediaId: number) {
     select: {
       _count: {
         select: {
-          MediaLike: true,
-          MediaRating: true,
-          MediaReview: true,
-          MediaWatched: true,
-          MediaWatchlist: true,
+          mediaLike: true,
+          mediaRating: true,
+          mediaReview: true,
+          mediaWatched: true,
+          mediaWatchlist: true,
         },
       },
     },
@@ -459,7 +459,7 @@ export async function createNewMediaReview(
       userId: user.id,
       activityType: "review",
       mediaId: media.mediaId,
-      MediaReview: {
+      mediaReview: {
         create: {
           mediaId: media.mediaId,
           review: values.review,
@@ -499,9 +499,6 @@ export async function updateMediaReview(
     await createNewRating(rating, media);
   }
 
-  console.log(oldLiked);
-  console.log(liked);
-
   if (oldLiked !== liked) {
     if (!liked) await deleteMediaLike(media);
     else await createMediaLike(media);
@@ -532,24 +529,36 @@ export async function getUserReviewForMedia(mediaId: number) {
   const result = await prisma.mediaReview.findMany({
     where: {
       mediaId: mediaId,
-      Activity: {
+      activity: {
         activityType: "review",
         userId: user.id,
       },
     },
     select: {
       activityId: true,
-      Media: true,
+      media: true,
       review: true,
       rating: true,
       liked: true,
       spoiler: true,
       rewatched: true,
-      Activity: {
+      activity: {
         select: {
+          activityLikes: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilePictureURL: true,
+                },
+              },
+            },
+          },
           createdAt: true,
           user: {
             select: {
+              id: true,
               username: true,
               profilePictureURL: true,
             },
@@ -558,7 +567,7 @@ export async function getUserReviewForMedia(mediaId: number) {
       },
     },
     orderBy: {
-      Activity: {
+      activity: {
         createdAt: "desc",
       },
     },
@@ -574,7 +583,7 @@ export async function getRecentReviewsForMedia(mediaId: number) {
   const result = await prisma.mediaReview.findMany({
     where: {
       mediaId: mediaId,
-      Activity: {
+      activity: {
         activityType: "review",
         NOT: {
           userId: user.id,
@@ -583,17 +592,29 @@ export async function getRecentReviewsForMedia(mediaId: number) {
     },
     select: {
       activityId: true,
-      Media: true,
+      media: true,
       review: true,
       rating: true,
       liked: true,
       spoiler: true,
       rewatched: true,
-      Activity: {
+      activity: {
         select: {
+          activityLikes: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilePictureURL: true,
+                },
+              },
+            },
+          },
           createdAt: true,
           user: {
             select: {
+              id: true,
               username: true,
               profilePictureURL: true,
             },
@@ -602,7 +623,7 @@ export async function getRecentReviewsForMedia(mediaId: number) {
       },
     },
     orderBy: {
-      Activity: {
+      activity: {
         createdAt: "desc",
       },
     },
@@ -615,6 +636,33 @@ export async function deleteReview(activityId: string) {
   const result = await prisma.activity.delete({
     where: {
       id: activityId,
+    },
+  });
+
+  revalidatePath("/");
+  return result;
+}
+
+export async function createNewActivityLike(activityId: string) {
+  const user = await getUser();
+  if (!user) return null;
+
+  const result = await prisma.activityLike.create({
+    data: {
+      activityId: activityId,
+      userId: user.id,
+    },
+  });
+
+  revalidatePath("/");
+
+  return result;
+}
+
+export async function deleteNewActivityLike(activityId: string) {
+  const result = await prisma.activityLike.delete({
+    where: {
+      activityId: activityId,
     },
   });
 

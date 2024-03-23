@@ -267,7 +267,7 @@ export default function ReviewBlockActions({
                                 />
                               </FormControl>
                               <FormLabel className="text-sm">
-                                Watched this film before
+                                Watched this before
                               </FormLabel>
                             </div>
                             <FormMessage className="text-red-500" />
