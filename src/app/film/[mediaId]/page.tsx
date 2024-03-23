@@ -70,6 +70,8 @@ export default async function FilmPage({
   const recentReviews = await getRecentReviewsForMedia(id);
   const userReview = await getUserReviewForMedia(id);
   const interactions = await getAllInteractionsForMedia(id);
+  const watched = mediaData.userActivity.includes("watched");
+
   const director = result.credits.crew.filter((person: any) => {
     return person.job === "Director";
   })[0];
@@ -115,7 +117,7 @@ export default async function FilmPage({
               userActivity={mediaData.userActivity}
             />
 
-            <ReviewDialog media={mediaDbItem}>
+            <ReviewDialog media={mediaDbItem} watched={watched}>
               <Button className="mt-4 w-full text-sm text-black">
                 Write a Review
               </Button>
@@ -259,12 +261,15 @@ export default async function FilmPage({
                           mediaId: review.Media.mediaId,
                           rating: review.rating,
                           review: review.review,
+                          spoiler: review.spoiler,
+                          rewatched: review.rewatched,
                         }}
                         user={review.Activity.user}
                         date={postedDate}
                         key={index}
                         media={mediaDbItem}
                         ownReview
+                        watched={watched}
                       />
                     );
                   })}
@@ -290,11 +295,14 @@ export default async function FilmPage({
                       mediaId: review.Media.mediaId,
                       rating: review.rating,
                       review: review.review,
+                      spoiler: review.spoiler,
+                      rewatched: review.rewatched,
                     }}
                     user={review.Activity.user}
                     date={postedDate}
                     key={index}
                     media={mediaDbItem}
+                    watched={watched}
                   />
                 );
               })}

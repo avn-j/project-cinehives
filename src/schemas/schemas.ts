@@ -142,4 +142,6 @@ export const reviewSchema = z.object({
   review: z.string().min(1, {
     message: "Review cannot be empty",
   }),
+  rewatched: z.boolean().default(false).optional(),
+  spoilers: z.boolean().default(false).optional(),
 });

@@ -119,6 +119,8 @@ model MediaReview {
     review     String
     rating     Float?
     liked      Boolean @default(false)
+    spoiler    Boolean @default(false)
+    rewatched  Boolean @default(false)
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
     Media    Media    @relation(fields: [mediaId], references: [mediaId])

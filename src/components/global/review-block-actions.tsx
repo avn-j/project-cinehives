@@ -52,6 +52,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { reviewSchema } from "@/schemas/schemas";
 import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
 
 interface ReviewBlockActionsProps {
   media: Media;
@@ -75,8 +76,18 @@ export default function ReviewBlockActions({
     resolver: zodResolver(reviewSchema),
     defaultValues: {
       review: "",
+      rewatched: false,
+      spoilers: false,
     },
   });
+
+  useEffect(() => {
+    form.setValue("rewatched", review.rewatched);
+  }, [form, review.rewatched]);
+
+  useEffect(() => {
+    form.setValue("spoilers", review.spoiler);
+  }, [form, review.spoiler]);
 
   useEffect(() => {
     form.setValue("review", review.review);
@@ -112,8 +123,6 @@ export default function ReviewBlockActions({
   function handleRating(rating: number) {
     setRating(rating);
   }
-
-  function handleEdit() {}
 
   async function handleDelete() {
     const result = await deleteReview(review.activityId);
@@ -213,6 +222,54 @@ export default function ReviewBlockActions({
                                 placeholder="Write your review..."
                               />
                             </FormControl>
+                            <FormMessage className="text-red-500" />
+                          </FormItem>
+                        );
+                      }}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="spoilers"
+                      render={({ field }) => {
+                        return (
+                          <FormItem>
+                            <div className="mt-4 flex items-center gap-2">
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  className="bg-stone-700"
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm">
+                                Contains spoilers
+                              </FormLabel>
+                            </div>
+                            <FormMessage className="text-red-500" />
+                          </FormItem>
+                        );
+                      }}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="rewatched"
+                      render={({ field }) => {
+                        return (
+                          <FormItem>
+                            <div className="mt-4 flex items-center gap-2">
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  className="bg-stone-700"
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm">
+                                Watched this film before
+                              </FormLabel>
+                            </div>
                             <FormMessage className="text-red-500" />
                           </FormItem>
                         );

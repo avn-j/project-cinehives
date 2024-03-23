@@ -5,6 +5,9 @@ import Image from "next/image";
 import { FaHeart, FaStar, FaStarHalf } from "react-icons/fa";
 
 import ReviewBlockActions from "./review-block-actions";
+import { FaRepeat } from "react-icons/fa6";
+import { Button } from "../ui/button";
+import { useState } from "react";
 
 interface ReviewBlockProps {
   review: MediaReview;
@@ -12,6 +15,7 @@ interface ReviewBlockProps {
   date: string;
   ownReview?: boolean;
   media: Media;
+  watched: boolean;
 }
 
 export default function ReviewBlock({
@@ -20,11 +24,13 @@ export default function ReviewBlock({
   date,
   ownReview = false,
   media,
+  watched,
 }: ReviewBlockProps) {
+  const [showSpoiler, setShowSpoiler] = useState(false);
   let halfStar: boolean = false;
 
   // Checks if there is a half star rating
-  if (review?.rating && review?.rating !== null && !(review.rating % 1 == 0)) {
+  if (review.rating && !(review.rating % 1 == 0)) {
     halfStar = true;
   }
 
@@ -48,10 +54,11 @@ export default function ReviewBlock({
             </p>
             <p className="text-xs text-stone-300">{date}</p>
             <div className="mt-2 flex gap-2">
-              {review?.liked && <FaHeart className="text-red-500" />}
+              {review.rewatched && <FaRepeat />}
+              {review.liked && <FaHeart className="text-red-500" />}
               <div className="flex gap-0.5">
                 {review?.rating &&
-                  Array.from({ length: review?.rating }).map((_item, index) => (
+                  Array.from({ length: review.rating }).map((_item, index) => (
                     <FaStar className="text-primary" key={index} />
                   ))}
 
@@ -62,7 +69,21 @@ export default function ReviewBlock({
         </div>
         {ownReview && <ReviewBlockActions media={media} review={review} />}
       </div>
-      <p className="mt-6 text-sm">{review?.review}</p>
+      {!watched && review.spoiler && !showSpoiler && !ownReview ? (
+        <p className="mt-6 text-sm italic">
+          You have not seen this film and this review contains spoilers. Click
+          <Button
+            variant="link"
+            className="px-1 py-0"
+            onClick={() => setShowSpoiler(true)}
+          >
+            here
+          </Button>
+          to show anyway.
+        </p>
+      ) : (
+        <p className="mt-6 text-sm">{review.review}</p>
+      )}
     </div>
   );
 }

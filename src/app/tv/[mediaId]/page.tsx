@@ -72,6 +72,9 @@ export default async function TVPage({
 
   const cast = result.aggregate_credits.cast;
   const crew: any[] = result.aggregate_credits.crew;
+  const watched = mediaData.userActivity.includes("watched");
+
+  console.log(watched);
 
   const castByCharacters = cast.map((member: any) => {
     const characters: string[] = [];
@@ -129,7 +132,7 @@ export default async function TVPage({
               userActivity={mediaData.userActivity}
             />
 
-            <ReviewDialog media={mediaDbItem}>
+            <ReviewDialog media={mediaDbItem} watched={watched}>
               <Button className="mt-4 w-full text-sm text-black">
                 Write a Review
               </Button>
@@ -298,12 +301,15 @@ export default async function TVPage({
                           mediaId: review.Media.mediaId,
                           rating: review.rating,
                           review: review.review,
+                          spoiler: review.spoiler,
+                          rewatched: review.rewatched,
                         }}
                         user={review.Activity.user}
                         date={postedDate}
                         key={index}
                         media={mediaDbItem}
                         ownReview
+                        watched={watched}
                       />
                     );
                   })}
@@ -329,11 +335,14 @@ export default async function TVPage({
                       mediaId: review.Media.mediaId,
                       rating: review.rating,
                       review: review.review,
+                      spoiler: review.spoiler,
+                      rewatched: review.rewatched,
                     }}
                     user={review.Activity.user}
                     date={postedDate}
                     key={index}
                     media={mediaDbItem}
+                    watched={watched}
                   />
                 );
               })}

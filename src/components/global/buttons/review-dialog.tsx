@@ -15,7 +15,7 @@ import { reviewSchema } from "@/schemas/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Media } from "@prisma/client";
 import Image from "next/image";
-import { MouseEvent, useRef, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaHeart, FaRegHeart, FaRegStar, FaStar } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
@@ -30,10 +30,12 @@ import {
 } from "@/components/ui/form";
 import { createNewMediaReview } from "@/lib/db-actions";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 interface ReviewDialogProps {
   media: Media;
   children: React.ReactNode;
+  watched: boolean;
 }
 
 export default function ReviewDialog({ ...props }: ReviewDialogProps) {
@@ -46,8 +48,14 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
     resolver: zodResolver(reviewSchema),
     defaultValues: {
       review: "",
+      rewatched: false,
+      spoilers: false,
     },
   });
+
+  useEffect(() => {
+    form.setValue("rewatched", props.watched);
+  }, []);
 
   function handleLikeToggle() {
     setLiked(!liked);
@@ -133,7 +141,55 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
                   }}
                 />
 
-                <DialogFooter>
+                <FormField
+                  control={form.control}
+                  name="spoilers"
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <div className="mt-4 flex items-center gap-2">
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="bg-stone-700"
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm">
+                            Contains spoilers
+                          </FormLabel>
+                        </div>
+                        <FormMessage className="text-red-500" />
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="rewatched"
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <div className="mt-4 flex items-center gap-2">
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="bg-stone-700"
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm">
+                            Watched this film before
+                          </FormLabel>
+                        </div>
+                        <FormMessage className="text-red-500" />
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                <DialogFooter className="mt-4">
                   <DialogClose asChild>
                     <Button
                       type="button"

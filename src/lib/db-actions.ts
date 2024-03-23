@@ -463,8 +463,10 @@ export async function createNewMediaReview(
         create: {
           mediaId: media.mediaId,
           review: values.review,
-          rating: rating,
-          liked: liked,
+          rating,
+          liked,
+          spoiler: values.spoilers,
+          rewatched: values.rewatched,
         },
       },
     },
@@ -513,6 +515,8 @@ export async function updateMediaReview(
       review: values.review,
       liked: liked,
       rating: rating,
+      spoiler: values.spoilers,
+      rewatched: values.rewatched,
     },
   });
 
@@ -539,6 +543,8 @@ export async function getUserReviewForMedia(mediaId: number) {
       review: true,
       rating: true,
       liked: true,
+      spoiler: true,
+      rewatched: true,
       Activity: {
         select: {
           createdAt: true,
@@ -581,6 +587,8 @@ export async function getRecentReviewsForMedia(mediaId: number) {
       review: true,
       rating: true,
       liked: true,
+      spoiler: true,
+      rewatched: true,
       Activity: {
         select: {
           createdAt: true,
