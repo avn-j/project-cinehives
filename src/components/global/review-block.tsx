@@ -1,21 +1,26 @@
-import { MediaReview, Profile } from "@prisma/client";
-import { DateTime } from "luxon";
+"use client";
+
+import { Media, MediaReview } from "@prisma/client";
 import Image from "next/image";
 import { FaHeart, FaStar, FaStarHalf } from "react-icons/fa";
 
+import ReviewBlockActions from "./review-block-actions";
+
 interface ReviewBlockProps {
-  review: MediaReview | null;
+  review: MediaReview;
   user: { username: string; profilePictureURL: string };
-  date: Date;
+  date: string;
+  ownReview?: boolean;
+  media: Media;
 }
 
-export default async function ReviewBlock({
+export default function ReviewBlock({
   review,
   user,
   date,
+  ownReview = false,
+  media,
 }: ReviewBlockProps) {
-  const dt = DateTime.fromJSDate(date);
-  const postedDate = dt.toFormat("DD");
   let halfStar: boolean = false;
 
   // Checks if there is a half star rating
@@ -25,9 +30,9 @@ export default async function ReviewBlock({
 
   return (
     <div className="bg-accent rounded-lg p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative h-14 w-14 rounded-full bg-stone-700">
+          <div className="relative h-16 w-16 rounded-full bg-stone-700">
             <Image
               src={user.profilePictureURL}
               alt={user.username}
@@ -41,22 +46,23 @@ export default async function ReviewBlock({
               <span className="text-stone-300">Reviewed by</span>{" "}
               {user.username}
             </p>
-            <p className="text-xs text-stone-300">{postedDate}</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          {review?.liked && <FaHeart className="text-red-500" />}
-          <div className="flex gap-0.5">
-            {review?.rating &&
-              Array.from({ length: review?.rating }).map((_item, index) => (
-                <FaStar className="text-primary" key={index} />
-              ))}
+            <p className="text-xs text-stone-300">{date}</p>
+            <div className="mt-2 flex gap-2">
+              {review?.liked && <FaHeart className="text-red-500" />}
+              <div className="flex gap-0.5">
+                {review?.rating &&
+                  Array.from({ length: review?.rating }).map((_item, index) => (
+                    <FaStar className="text-primary" key={index} />
+                  ))}
 
-            {halfStar && <FaStarHalf className="text-primary" />}
+                {halfStar && <FaStarHalf className="text-primary" />}
+              </div>
+            </div>
           </div>
         </div>
+        {ownReview && <ReviewBlockActions media={media} review={review} />}
       </div>
-      <p className="mt-6">{review?.review}</p>
+      <p className="mt-6 text-sm">{review?.review}</p>
     </div>
   );
 }

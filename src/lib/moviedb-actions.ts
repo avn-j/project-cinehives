@@ -86,8 +86,36 @@ export async function fetchTrendingMovieData(page: number) {
   return res.json();
 }
 
+export async function fetchTrendingTVShowData(page: number) {
+  const url = `${MOVIE_API_BASE_URL}/discover/tv?include_adult=false&include_video=false&language=en-US&page=${page}&sort_by=popularity.desc&with_original_language=en`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${process.env.MOVIEDB_API_READ_TOKEN} `,
+    },
+    cache: "no-cache",
+  });
+
+  return res.json();
+}
+
 export async function fetchMovieDetailsById(id: string) {
   const url = `${MOVIE_API_BASE_URL}/movie/${id}?append_to_response=credits`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${process.env.MOVIEDB_API_READ_TOKEN} `,
+    },
+    cache: "no-cache",
+  });
+
+  return res.json();
+}
+
+export async function fetchTVDetailsById(id: string) {
+  const url = `${MOVIE_API_BASE_URL}/tv/${id}?append_to_response=aggregate_credits`;
   const res = await fetch(url, {
     method: "GET",
     headers: {

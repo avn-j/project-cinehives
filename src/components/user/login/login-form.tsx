@@ -33,9 +33,11 @@ export default function LoginForm() {
   async function handleSubmit(values: z.infer<typeof loginFormSchema>) {
     setLoading(true);
     const error = await login(values);
-    setLoading(false);
 
-    if (error) setError(error);
+    if (error) {
+      setError(error);
+      setLoading(false);
+    }
   }
   return (
     <>

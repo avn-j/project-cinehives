@@ -59,7 +59,7 @@ export default async function AppHome() {
         <MediaCarousel
           mediaCollection={refinedPopularTVData}
           carouselTitle="Popular TV shows this week"
-          mediaType={MediaType.TV}
+          mediaType={MediaType.tv}
         />
       </Section>
       <Section>

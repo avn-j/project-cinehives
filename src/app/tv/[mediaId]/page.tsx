@@ -9,8 +9,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { fetchMovieDetailsById } from "@/lib/moviedb-actions";
-import { Media, MediaReview, MediaType } from "@prisma/client";
+import { fetchTVDetailsById } from "@/lib/moviedb-actions";
+import { Media, MediaType } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
@@ -26,18 +26,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import ReviewButton from "@/components/global/buttons/review-dialog";
 import ReviewBlock from "@/components/global/review-block";
-import CastCarousel from "@/components/global/cast-carousel";
 import { DateTime } from "luxon";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import ReviewDialog from "@/components/global/buttons/review-dialog";
+import CastCarousel from "@/components/global/cast-carousel";
+import TVSeasons from "@/components/global/tv-seasons";
 import { Button } from "@/components/ui/button";
+import ReviewDialog from "@/components/global/buttons/review-dialog";
 
-export default async function FilmPage({
+export default async function TVPage({
   params,
 }: {
   params: { mediaId: string };
@@ -47,48 +42,67 @@ export default async function FilmPage({
   const profile = await getUserProfile(user);
   if (!profile) redirect("/account/setup");
 
-  const result = await fetchMovieDetailsById(params.mediaId);
+  const result = await fetchTVDetailsById(params.mediaId);
 
   if (result.success === false) notFound();
 
   const {
-    original_title,
+    original_name,
     id,
     genres,
     overview,
-    title,
-    production_companies,
+    name,
     poster_path,
-    runtime,
-    release_date,
+    number_of_episodes,
+    number_of_seasons,
+    first_air_date,
+    last_episode_to_air,
+    next_episode_to_air,
+    status,
     backdrop_path,
     tagline,
+    seasons,
   } = result;
 
   const mediaData = await buildDataForMedia(result, user.id);
   const rating = await getAverageRatingForMedia(id);
-  const recentReviews = await getRecentReviewsForMedia(id);
   const userReview = await getUserReviewForMedia(id);
+  const recentReviews = await getRecentReviewsForMedia(id);
   const interactions = await getAllInteractionsForMedia(id);
-  const director = result.credits.crew.filter((person: any) => {
-    return person.job === "Director";
-  })[0];
-  const cast = result.credits.cast;
-  const crew: any[] = result.credits.crew;
-  const watchedCount = interactions?._count.MediaWatched || 0;
-  const likeCount = interactions?._count.MediaLike || 0;
-  const watchlistCount = interactions?._count.MediaWatchlist || 0;
+
+  const cast = result.aggregate_credits.cast;
+  const crew: any[] = result.aggregate_credits.crew;
+
+  const castByCharacters = cast.map((member: any) => {
+    const characters: string[] = [];
+
+    member.roles.forEach((role: any) => {
+      characters.push(role.character);
+    });
+
+    return {
+      id: member.id,
+      name: member.name,
+      characters: characters,
+      profile_path: member.profile_path,
+    };
+  });
+
   const crewByDepartments = crew.reduce((x, y) => {
     (x[y.department] = x[y.department] || []).push(y);
 
     return x;
   }, {});
 
+  const creators = result.created_by
+    ? result.created_by.map((creator: any) => creator.name)
+    : [];
+
   const mediaDbItem: Media = {
     mediaId: mediaData.id,
     title: mediaData.title,
     posterPath: mediaData.posterPath,
-    mediaType: MediaType.film,
+    mediaType: MediaType.tv,
   };
 
   return (
@@ -103,15 +117,15 @@ export default async function FilmPage({
         />
       </div>
       <Section>
-        <div className="-mt-36 grid grid-cols-4 gap-8">
-          <div>
+        <div className="-mt-36 grid grid-cols-4 gap-12">
+          <div className="flex flex-col">
             <MovieCard
-              alt={result.title}
+              alt={result.name}
               id={result.id}
               mediaType={MediaType.film}
               rating={mediaData.rating}
               src={mediaData.posterPath}
-              title={result.title}
+              title={result.name}
               userActivity={mediaData.userActivity}
             />
 
@@ -122,56 +136,33 @@ export default async function FilmPage({
             </ReviewDialog>
 
             <div className="mt-10 flex gap-4">
-              <TooltipProvider>
-                <Tooltip delayDuration={1.5}>
-                  <TooltipTrigger>
-                    <div className="flex items-center gap-1">
-                      <FaEye size={20} className="text-primary" />
-                      <p className="text-xl">{watchedCount}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-accent">
-                    <p>
-                      {watchedCount} {watchedCount > 1 ? "users" : "user"} has
-                      watched this
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip delayDuration={1.5}>
-                  <TooltipTrigger>
-                    <div className="flex items-center gap-1">
-                      <FaHeart size={20} className="text-red-500" />
-                      <p className="text-xl">{likeCount}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-accent">
-                    <p>
-                      {likeCount} {likeCount > 1 ? "users" : "user"} has liked
-                      this
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip delayDuration={1.5}>
-                  <TooltipTrigger>
-                    <div className="flex items-center gap-1">
-                      <FaList size={20} className="text-primary" />
-                      <p className="text-xl">{watchlistCount}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-accent">
-                    <p>
-                      {watchlistCount} {watchlistCount > 1 ? "users" : "user"}{" "}
-                      has this on their watchlist
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className="flex items-center gap-1">
+                {/* TODO: Add tooltips */}
+                <FaEye size={20} className="text-primary" />
+                <p className="text-xl">
+                  {interactions?._count.MediaWatched
+                    ? interactions?._count.MediaWatched
+                    : 0}
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
+                {/* TODO: Add tooltips */}
+                <FaHeart size={20} className="text-red-500" />
+                <p className="text-xl">
+                  {interactions?._count.MediaLike
+                    ? interactions?._count.MediaLike
+                    : 0}
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
+                {/* TODO: Add tooltips */}
+                <FaList size={20} className="text-primary" />
+                <p className="text-xl">
+                  {interactions?._count.MediaWatchlist
+                    ? interactions?._count.MediaWatchlist
+                    : 0}
+                </p>
+              </div>
             </div>
 
             <div className="mt-8">
@@ -185,40 +176,52 @@ export default async function FilmPage({
                   );
                 })}
               </div>
+            </div>
 
+            {first_air_date && (
               <div className="mt-8">
-                <h3 className="font-semibold">Runtime</h3>
-                <p className="mt-1 text-sm">{runtime} mins</p>
-              </div>
-
-              <div className="mt-8">
-                <h3 className="font-semibold">Release Date</h3>
+                <h3 className="font-semibold">Premiere</h3>
                 <p className="mt-1 text-sm">
-                  {DateTime.fromISO(release_date).toFormat("DD")}
+                  {DateTime.fromISO(first_air_date).toFormat("DD")}
                 </p>
               </div>
+            )}
 
+            {next_episode_to_air && (
               <div className="mt-8">
-                <h3 className="font-semibold">Production Company</h3>
-                <div className="mt-2 flex flex-col gap-2">
-                  {production_companies.map((company: any) => {
-                    return (
-                      <p key={company.id} className="text-sm">
-                        {company.name}
-                      </p>
-                    );
-                  })}
-                </div>
+                <h3 className="font-semibold">Next Episode Airing</h3>
+                <p className="mt-1 text-sm">
+                  {DateTime.fromISO(next_episode_to_air.air_date).toFormat(
+                    "DD",
+                  )}
+                </p>
               </div>
+            )}
+
+            {status && (
+              <div className="mt-8">
+                <h3 className="font-semibold">Status</h3>
+                <p className="mt-1 text-sm">{status}</p>
+              </div>
+            )}
+
+            <div className="mt-8">
+              <h3 className="font-semibold">Seasons & Episodes</h3>
+              <p className="mt-1 text-sm">
+                {number_of_seasons}{" "}
+                {number_of_seasons > 1 ? "seasons" : "season"},{" "}
+                {number_of_episodes} episodes
+              </p>
             </div>
           </div>
-          <div className="col-span-3 mt-40">
+          <div className="col-span-3 mt-36">
             <h1 className=" text-4xl font-bold">
-              {title} {original_title !== title ? `(${original_title})` : ""}
+              {name} {original_name !== name ? `(${original_name})` : ""}
             </h1>
-            <h2 className="mt-2 text-3xl"> ({release_date.split("-")[0]})</h2>
-            <p className="mt-2 text-lg">Directed by {director.name}</p>
-
+            <h2 className="mt-2 text-3xl">({first_air_date.split("-")[0]})</h2>
+            {creators.length > 0 && (
+              <p className="mt-2 text-lg">Created by {creators.join(", ")}</p>
+            )}
             <div className="mt-2 flex gap-2">
               <p className="text-xl">
                 {rating?._avg.rating && rating?._avg.rating}
@@ -232,11 +235,47 @@ export default async function FilmPage({
             <h2 className="mt-10 text-lg font-bold">{tagline}</h2>
             <p className="mt-3 text-lg leading-7">{overview}</p>
 
+            {status != "Ended" && (
+              <div className="mt-14">
+                <h2 className="text-xl">Latest Episode</h2>
+                <Separator className="my-2 bg-stone-50" />
+                <div className="mt-8 flex items-center gap-4">
+                  <Image
+                    alt={last_episode_to_air.id}
+                    src={
+                      MOVIE_DB_IMG_PATH_PREFIX + last_episode_to_air.still_path
+                    }
+                    width={300}
+                    height={300}
+                    className="rounded border-2 border-green-50 border-opacity-15 object-cover"
+                  />
+                  <div>
+                    <h3 className="text-sm">
+                      Season {last_episode_to_air.season_number} Episode{" "}
+                      {last_episode_to_air.episode_number}
+                    </h3>
+                    <h3 className="text-2xl font-bold">
+                      {last_episode_to_air.name}
+                    </h3>
+                    <p className="text-xs text-stone-400">
+                      {last_episode_to_air.runtime} mins
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8">
+              <h2 className="text-xl">Seasons ({number_of_seasons})</h2>
+              <Separator className="my-2 bg-stone-50" />
+              <TVSeasons seasons={seasons} />
+            </div>
+
             <Accordion type="single" collapsible className="mt-8">
               <AccordionItem value="cast">
                 <AccordionTrigger className="text-xl">Cast</AccordionTrigger>
                 <AccordionContent>
-                  <CastCarousel cast={cast} />
+                  <CastCarousel cast={castByCharacters} />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -298,6 +337,11 @@ export default async function FilmPage({
                   />
                 );
               })}
+              {recentReviews.length === 0 && (
+                <p className="mt-8 text-stone-400">
+                  There are no reviews yet for {name}.
+                </p>
+              )}
             </div>
           </div>
         </div>

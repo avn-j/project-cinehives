@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { ImSpinner2 } from "react-icons/im";
 import { useUserContext } from "@/providers/user-context";
 import { buildDataForMedias } from "@/lib/movie-data-builder";
-import { fetchTrendingMovieData } from "@/lib/moviedb-actions";
+import {
+  fetchTrendingMovieData,
+  fetchTrendingTVShowData,
+} from "@/lib/moviedb-actions";
 import { useInView } from "react-intersection-observer";
 import { MediaType } from "@prisma/client";
 
@@ -26,11 +29,18 @@ export default function InitialLoad({
   const loadMoreMedia = async () => {
     const next = page + 1;
 
-    const topRatedMovieData = await fetchTrendingMovieData(next);
+    let topRatedMedia;
 
-    if (topRatedMovieData?.results.length > 0) {
+    switch (mediaType) {
+      case MediaType.film:
+        topRatedMedia = await fetchTrendingMovieData(next);
+      case MediaType.tv:
+        topRatedMedia = await fetchTrendingTVShowData(next);
+    }
+
+    if (topRatedMedia?.results.length > 0) {
       const refinedTopRatedMovieData = await buildDataForMedias(
-        topRatedMovieData.results,
+        topRatedMedia.results,
         user.id,
       );
 
@@ -50,10 +60,6 @@ export default function InitialLoad({
       loadMoreMedia();
     }
   }, [inView]);
-
-  useEffect(() => {
-    console.log("rerendered");
-  }, []);
 
   return (
     <>

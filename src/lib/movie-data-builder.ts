@@ -68,7 +68,7 @@ export async function buildBannerData(mediaDbData: any[]) {
     return {
       id: media.id,
       backdropPath: MOVIE_DB_IMG_PATH_PREFIX + media.backdrop_path,
-      title: media.title,
+      title: media.title || media.name,
       releaseDate: media.release_date,
     };
   });

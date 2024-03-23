@@ -60,7 +60,7 @@ export default function MovieSetupCarousel({
       return;
     }
 
-    api.on("slidesInView", () => {
+    api.on("settle", () => {
       if (api.canScrollNext() === false) {
         setCarouselEnd(true);
       } else {

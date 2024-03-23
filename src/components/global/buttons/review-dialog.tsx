@@ -31,11 +31,12 @@ import {
 import { createNewMediaReview } from "@/lib/db-actions";
 import { toast } from "sonner";
 
-interface ReviewButtonProps {
+interface ReviewDialogProps {
   media: Media;
+  children: React.ReactNode;
 }
 
-export default function ReviewButton({ ...props }: ReviewButtonProps) {
+export default function ReviewDialog({ ...props }: ReviewDialogProps) {
   const [liked, setLiked] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,11 +81,7 @@ export default function ReviewButton({ ...props }: ReviewButtonProps) {
 
   return (
     <Dialog open={openModal} onOpenChange={setOpenModal}>
-      <DialogTrigger asChild>
-        <Button variant="secondary" className="text-sm text-black">
-          Write a Review
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className="bg-black sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Review for {props.media.title}</DialogTitle>
@@ -163,8 +160,13 @@ export default function ReviewButton({ ...props }: ReviewButtonProps) {
   );
 }
 
-function StarRating({ ...props }: { handleRating: Function }) {
-  const [activeStar, setActiveStar] = useState(-1);
+export function StarRating({
+  ...props
+}: {
+  handleRating: Function;
+  initialRating?: number;
+}) {
+  const [activeStar, setActiveStar] = useState(props.initialRating || -1);
   const [hoverActiveStar, setHoverActiveStar] = useState(-1);
   const [isHovered, setIsHovered] = useState(false);
   const totalStars = 5;

@@ -23,7 +23,7 @@ enum ActivityType {
 
 enum MediaType {
     film
-    TV
+    tv
     anime
 }
 
@@ -114,11 +114,11 @@ model MediaWatched {
 }
 
 model MediaReview {
-    activityId String   @id @unique @map("activity_id") @db.Uuid
-    mediaId    Int      @map("media_id")
+    activityId String  @id @unique @map("activity_id") @db.Uuid
+    mediaId    Int     @map("media_id")
     review     String
     rating     Float?
-    liked      Boolean?
+    liked      Boolean @default(false)
 
     Activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
     Media    Media    @relation(fields: [mediaId], references: [mediaId])

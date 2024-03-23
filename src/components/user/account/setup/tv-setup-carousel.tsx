@@ -89,7 +89,7 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
                       src={media.posterPath}
                       rating={media.rating}
                       userActivity={media.userActivity}
-                      mediaType={MediaType.TV}
+                      mediaType={MediaType.tv}
                     />
                   </div>
                 </CarouselItem>

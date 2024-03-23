@@ -50,7 +50,6 @@ export default function MediaPreferencesForm({
           type="multiple"
           onValueChange={(value) => {
             if (value) setMediaValues(value);
-            console.log(value);
           }}
           className="grid grid-cols-3 gap-8"
           disabled={showGenres}
@@ -75,7 +74,6 @@ export default function MediaPreferencesForm({
               type="multiple"
               onValueChange={(value) => {
                 if (value) setGenreValues(value);
-                console.log(value);
               }}
               className="grid grid-cols-2 justify-start gap-8"
             >

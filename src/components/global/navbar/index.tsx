@@ -36,7 +36,10 @@ export default function Navbar() {
               <li className={currentPath === "/films" ? "text-primary" : ""}>
                 <Link href="/films">Films</Link>
               </li>
-              <li>Journal</li>
+              <li className={currentPath === "/tv-shows" ? "text-primary" : ""}>
+                <Link href="/tv-shows">TV Shows</Link>
+              </li>
+              <li>Anime</li>
               <li>Watchlist</li>
               <li>Search</li>
             </ul>
