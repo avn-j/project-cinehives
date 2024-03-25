@@ -17,7 +17,7 @@ export default function TVSeasons({ seasons }: TVSeasonsProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const visibleSeasons = seasons.slice(0, 2);
-  const hiddenSeasons = seasons.slice(2, seasons.length - 1);
+  const hiddenSeasons = seasons.slice(2, seasons.length);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>

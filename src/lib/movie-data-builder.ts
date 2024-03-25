@@ -10,7 +10,7 @@ export async function buildDataForMedias(mediaDbData: any[], userId: string) {
     return media.id;
   });
 
-  const activityResult = await prisma.activity.findMany({
+  const activityResult = await prisma.mediaActivity.findMany({
     where: {
       userId: userId,
       mediaId: {
@@ -19,7 +19,7 @@ export async function buildDataForMedias(mediaDbData: any[], userId: string) {
     },
   });
 
-  const ratingResult = await prisma.activity.findMany({
+  const ratingResult = await prisma.mediaActivity.findMany({
     include: {
       mediaRating: true,
     },
@@ -77,15 +77,16 @@ export async function buildBannerData(mediaDbData: any[]) {
 }
 
 export async function buildDataForMedia(media: any, userId: string) {
-  const activityResult = await prisma.activity.findMany({
+  const activityResult = await prisma.mediaActivity.findMany({
     where: {
       userId: userId,
       mediaId: media.id,
     },
   });
 
-  const ratingResult = await prisma.activity.findFirst({
+  const ratingResult = await prisma.mediaActivity.findFirst({
     include: {
+      media: true,
       mediaRating: true,
     },
     where: {

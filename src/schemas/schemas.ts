@@ -145,3 +145,9 @@ export const reviewSchema = z.object({
   rewatched: z.boolean().default(false).optional(),
   spoilers: z.boolean().default(false).optional(),
 });
+
+export const commentSchema = z.object({
+  comment: z.string().min(1, {
+    message: "Comment cannot be empty",
+  }),
+});

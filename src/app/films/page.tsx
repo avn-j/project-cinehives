@@ -33,7 +33,7 @@ export default async function FilmsPage() {
             <h2 className="text-3xl">Recent Film Activity</h2>
             <Separator className="mb-4 mt-2 bg-stone-500" />
             <div className="grid grid-cols-5 gap-4">
-              {recentFilmActivity.map((media) => (
+              {recentFilmActivity.map((media: any) => (
                 <MovieCard
                   title={media.title}
                   rating={media.rating}

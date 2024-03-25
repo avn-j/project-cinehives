@@ -134,9 +134,9 @@ export default function ReviewBlockActions({
     <>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger>
-          <FaEllipsis className="-mt-4 justify-end" />
+          <FaEllipsis className="-mt-6 justify-end" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-black" align="end" sideOffset={-20}>
+        <DropdownMenuContent className="bg-black" align="end" sideOffset={-40}>
           <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
             <FaEdit className="mr-2" /> Edit
           </DropdownMenuItem>

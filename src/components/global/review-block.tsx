@@ -2,7 +2,13 @@
 
 import { Media, MediaReview, Profile } from "@prisma/client";
 import Image from "next/image";
-import { FaHeart, FaRegHeart, FaStar, FaStarHalf } from "react-icons/fa";
+import {
+  FaHeart,
+  FaRegHeart,
+  FaReply,
+  FaStar,
+  FaStarHalf,
+} from "react-icons/fa";
 import {
   Dialog,
   DialogContent,
@@ -11,12 +17,13 @@ import {
 } from "@/components/ui/dialog";
 
 import ReviewBlockActions from "./review-block-actions";
-import { FaRepeat } from "react-icons/fa6";
+import { FaComment, FaRepeat } from "react-icons/fa6";
 import { Button } from "../ui/button";
 import { startTransition, useOptimistic, useState } from "react";
-import { createNewActivityLike, deleteNewActivityLike } from "@/lib/db-actions";
+import { createNewReviewLike, deleteReviewLike } from "@/lib/db-actions";
 import { Separator } from "../ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 interface ReviewBlockProps {
   review: MediaReview;
@@ -25,8 +32,11 @@ interface ReviewBlockProps {
   ownReview?: boolean;
   media: Media;
   watched: boolean;
-  likes: { user: Pick<Profile, "id" | "username" | "profilePictureURL"> }[];
+  likes: {
+    activity: { user: Pick<Profile, "id" | "username" | "profilePictureURL"> };
+  }[];
   hasLiked: boolean;
+  commentCount: number;
 }
 
 export default function ReviewBlock({
@@ -38,6 +48,7 @@ export default function ReviewBlock({
   watched,
   likes,
   hasLiked,
+  commentCount,
 }: ReviewBlockProps) {
   const [showSpoiler, setShowSpoiler] = useState(false);
   const [liked, setLiked] = useState(hasLiked);
@@ -63,14 +74,14 @@ export default function ReviewBlock({
       startTransition(() => {
         addOptimisticLikeCount(1);
       });
-      await createNewActivityLike(review.activityId);
+      await createNewReviewLike(review.activityId);
     }
 
     if (liked) {
       startTransition(() => {
         addOptimisticLikeCount(-1);
       });
-      await deleteNewActivityLike(review.activityId);
+      await deleteReviewLike(review.activityId);
     }
   }
 
@@ -89,7 +100,14 @@ export default function ReviewBlock({
           </div>
           <div>
             <p>
-              <span className="text-stone-300">Reviewed by</span>{" "}
+              <Link href={`/review/${review.activityId}`}>
+                <Button
+                  variant="link"
+                  className="h-0 px-0 py-0 text-base text-white"
+                >
+                  Reviewed by
+                </Button>
+              </Link>{" "}
               {reviewUser.username}
             </p>
             <p className="text-xs text-stone-300">{date}</p>
@@ -124,34 +142,51 @@ export default function ReviewBlock({
       ) : (
         <p className="mt-6 whitespace-pre-wrap text-sm">{review.review}</p>
       )}
-      <div className="mt-3 flex items-center justify-end gap-2">
-        {optimisticLikeCount > 0 && (
+      <div className="mt-3 flex items-center justify-end gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/review/${review.activityId}`}
+            className="px-0 py-0 text-white underline-offset-4 hover:underline"
+          >
+            <span className="text-sm">{commentCount}</span>
+          </Link>
+          <Link
+            href={`/review/${review.activityId}`}
+            className="flex items-center gap-1 px-0 py-0 font-medium text-white underline-offset-4 hover:underline"
+          >
+            <FaComment /> Reply
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {optimisticLikeCount > 0 && (
+            <Button
+              variant="link"
+              className="px-0 py-0 text-white"
+              onClick={() => setOpenLikesDialog(true)}
+            >
+              <span className="text-sm">{optimisticLikeCount}</span>
+            </Button>
+          )}
+
           <Button
             variant="link"
-            className="px-0 py-0 text-white"
-            onClick={() => setOpenLikesDialog(true)}
+            className=" gap-1 px-0 py-0 text-white"
+            onClick={handleLike}
           >
-            <span className="text-sm">{optimisticLikeCount}</span>
+            {liked ? (
+              <>
+                <FaHeart className="text-red-500" />
+                <p className="text-sm">Unlike</p>
+              </>
+            ) : (
+              <>
+                <FaRegHeart />
+                <p className="text-sm">Like</p>
+              </>
+            )}
           </Button>
-        )}
-
-        <Button
-          variant="link"
-          className=" gap-1 px-0 py-0 text-white"
-          onClick={handleLike}
-        >
-          {liked ? (
-            <>
-              <FaHeart className="text-red-500" />
-              <p className="text-sm">Unlike</p>
-            </>
-          ) : (
-            <>
-              <FaRegHeart />
-              <p className="text-sm">Like</p>
-            </>
-          )}
-        </Button>
+        </div>
       </div>
 
       <Dialog open={openLikesDialog} onOpenChange={setOpenLikesDialog}>
@@ -162,18 +197,21 @@ export default function ReviewBlock({
           </DialogHeader>
           {likes.map((like) => {
             return (
-              <div key={like.user.id} className="flex items-center gap-3">
+              <div
+                key={like.activity.user.id}
+                className="flex items-center gap-3"
+              >
                 <div className="relative h-10 w-10 rounded-full bg-stone-700">
                   <FaHeart className="absolute bottom-0 right-0 z-10 text-red-500 drop-shadow" />
                   <Image
-                    src={like.user.profilePictureURL}
-                    alt={like.user.username}
+                    src={like.activity.user.profilePictureURL}
+                    alt={like.activity.user.username}
                     fill={true}
                     objectFit="cover"
                     className="border-primary rounded-full"
                   />
                 </div>
-                <div className="text-sm">{like.user.username}</div>
+                <div className="text-sm">{like.activity.user.username}</div>
               </div>
             );
           })}

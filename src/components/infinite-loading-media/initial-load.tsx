@@ -32,10 +32,12 @@ export default function InitialLoad({
     let topRatedMedia;
 
     switch (mediaType) {
-      case MediaType.film:
+      case "film":
         topRatedMedia = await fetchTrendingMovieData(next);
-      case MediaType.tv:
+        break;
+      case "tv":
         topRatedMedia = await fetchTrendingTVShowData(next);
+        break;
     }
 
     if (topRatedMedia?.results.length > 0) {

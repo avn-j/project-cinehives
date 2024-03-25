@@ -10,7 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { fetchMovieDetailsById } from "@/lib/moviedb-actions";
-import { Media, MediaReview, MediaType } from "@prisma/client";
+import { Media, MediaType } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
@@ -24,7 +24,6 @@ import {
 import { FaEye, FaHeart, FaList } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import ReviewButton from "@/components/global/buttons/review-dialog";
 import ReviewBlock from "@/components/global/review-block";
 import CastCarousel from "@/components/global/cast-carousel";
 import { DateTime } from "luxon";
@@ -58,7 +57,6 @@ export default async function FilmPage({
     overview,
     title,
     production_companies,
-    poster_path,
     runtime,
     release_date,
     backdrop_path,
@@ -108,12 +106,12 @@ export default async function FilmPage({
         <div className="-mt-36 grid grid-cols-4 gap-8">
           <div>
             <MovieCard
-              alt={result.title}
-              id={result.id}
+              alt={title}
+              id={id}
               mediaType={MediaType.film}
               rating={mediaData.rating}
               src={mediaData.posterPath}
-              title={result.title}
+              title={title}
               userActivity={mediaData.userActivity}
             />
 
@@ -134,7 +132,10 @@ export default async function FilmPage({
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-accent">
                     <p>
-                      {watchedCount} {watchedCount > 1 ? "users" : "user"} has
+                      {watchedCount === 0 ? "No" : watchedCount}{" "}
+                      {watchedCount > 1 || watchedCount === 0
+                        ? "users have "
+                        : "user has "}
                       watched this
                     </p>
                   </TooltipContent>
@@ -151,8 +152,11 @@ export default async function FilmPage({
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-accent">
                     <p>
-                      {likeCount} {likeCount > 1 ? "users" : "user"} has liked
-                      this
+                      {likeCount === 0 ? "No" : likeCount}{" "}
+                      {likeCount > 1 || likeCount === 0
+                        ? "users have "
+                        : "user has "}
+                      liked this
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -168,8 +172,11 @@ export default async function FilmPage({
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-accent">
                     <p>
-                      {watchlistCount} {watchlistCount > 1 ? "users" : "user"}{" "}
-                      has this on their watchlist
+                      {watchlistCount === 0 ? "No" : watchlistCount}{" "}
+                      {watchlistCount > 1 || watchlistCount === 0
+                        ? "users have "
+                        : "user has "}
+                      this on their watchlist
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -252,12 +259,16 @@ export default async function FilmPage({
                     const postedDate = DateTime.fromJSDate(
                       review.activity.createdAt,
                     ).toFormat("DD");
-                    const hasLiked = review.activity.activityLikes.some(
-                      (value) => {
-                        return value.user.id === user.id;
-                      },
-                    );
-                    const { media, activity, ...reviewContent } = review;
+                    const hasLiked = review.reviewLikes.some((value) => {
+                      return value.activity.user.id === user.id;
+                    });
+                    const {
+                      media,
+                      activity,
+                      reviewComments,
+                      reviewLikes,
+                      ...reviewContent
+                    } = review;
 
                     return (
                       <ReviewBlock
@@ -268,8 +279,9 @@ export default async function FilmPage({
                         media={media}
                         ownReview
                         watched={watched}
-                        likes={activity.activityLikes}
+                        likes={reviewLikes}
                         hasLiked={hasLiked}
+                        commentCount={review._count.reviewComments}
                       />
                     );
                   })}
@@ -287,10 +299,11 @@ export default async function FilmPage({
                 const postedDate = DateTime.fromJSDate(
                   review.activity.createdAt,
                 ).toFormat("DD");
-                const hasLiked = review.activity.activityLikes.some((value) => {
-                  return value.user.id === user.id;
+                const hasLiked = review.reviewLikes.some((value) => {
+                  return value.activity.user.id === user.id;
                 });
-                const { media, activity, ...reviewContent } = review;
+                const { media, activity, reviewLikes, ...reviewContent } =
+                  review;
                 return (
                   <ReviewBlock
                     review={{ mediaId: media.mediaId, ...reviewContent }}
@@ -299,8 +312,9 @@ export default async function FilmPage({
                     key={index}
                     media={media}
                     watched={watched}
-                    likes={activity.activityLikes}
+                    likes={reviewLikes}
                     hasLiked={hasLiked}
+                    commentCount={review._count.reviewComments}
                   />
                 );
               })}

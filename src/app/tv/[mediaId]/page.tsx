@@ -31,6 +31,12 @@ import CastCarousel from "@/components/global/cast-carousel";
 import TVSeasons from "@/components/global/tv-seasons";
 import { Button } from "@/components/ui/button";
 import ReviewDialog from "@/components/global/buttons/review-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default async function TVPage({
   params,
@@ -69,6 +75,9 @@ export default async function TVPage({
   const userReview = await getUserReviewForMedia(id);
   const recentReviews = await getRecentReviewsForMedia(id);
   const interactions = await getAllInteractionsForMedia(id);
+  const watchedCount = interactions?._count.mediaWatched || 0;
+  const likeCount = interactions?._count.mediaLike || 0;
+  const watchlistCount = interactions?._count.mediaWatchlist || 0;
 
   const cast = result.aggregate_credits.cast;
   const crew: any[] = result.aggregate_credits.crew;
@@ -121,12 +130,12 @@ export default async function TVPage({
         <div className="-mt-36 grid grid-cols-4 gap-12">
           <div className="flex flex-col">
             <MovieCard
-              alt={result.name}
-              id={result.id}
+              alt={name}
+              id={id}
               mediaType={MediaType.film}
               rating={mediaData.rating}
               src={mediaData.posterPath}
-              title={result.name}
+              title={name}
               userActivity={mediaData.userActivity}
             />
 
@@ -137,33 +146,65 @@ export default async function TVPage({
             </ReviewDialog>
 
             <div className="mt-10 flex gap-4">
-              <div className="flex items-center gap-1">
-                {/* TODO: Add tooltips */}
-                <FaEye size={20} className="text-primary" />
-                <p className="text-xl">
-                  {interactions?._count.mediaWatched
-                    ? interactions?._count.mediaWatched
-                    : 0}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                {/* TODO: Add tooltips */}
-                <FaHeart size={20} className="text-red-500" />
-                <p className="text-xl">
-                  {interactions?._count.mediaLike
-                    ? interactions?._count.mediaLike
-                    : 0}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                {/* TODO: Add tooltips */}
-                <FaList size={20} className="text-primary" />
-                <p className="text-xl">
-                  {interactions?._count.mediaWatchlist
-                    ? interactions?._count.mediaWatchlist
-                    : 0}
-                </p>
-              </div>
+              <TooltipProvider>
+                <Tooltip delayDuration={1.5}>
+                  <TooltipTrigger>
+                    <div className="flex items-center gap-1">
+                      <FaEye size={20} className="text-primary" />
+                      <p className="text-xl">{watchedCount}</p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="bg-accent">
+                    <p>
+                      {watchedCount === 0 ? "No" : watchedCount}{" "}
+                      {watchedCount > 1 || watchedCount === 0
+                        ? "users have "
+                        : "user has "}
+                      watched this
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip delayDuration={1.5}>
+                  <TooltipTrigger>
+                    <div className="flex items-center gap-1">
+                      <FaHeart size={20} className="text-red-500" />
+                      <p className="text-xl">{likeCount}</p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="bg-accent">
+                    <p>
+                      {likeCount === 0 ? "No" : likeCount}{" "}
+                      {likeCount > 1 || likeCount === 0
+                        ? "users have "
+                        : "user has "}
+                      liked this
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip delayDuration={1.5}>
+                  <TooltipTrigger>
+                    <div className="flex items-center gap-1">
+                      <FaList size={20} className="text-primary" />
+                      <p className="text-xl">{watchlistCount}</p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="bg-accent">
+                    <p>
+                      {watchlistCount === 0 ? "No" : watchlistCount}{" "}
+                      {watchlistCount > 1 || watchlistCount === 0
+                        ? "users have "
+                        : "user has "}
+                      this on their watchlist
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             <div className="mt-8">
@@ -290,11 +331,9 @@ export default async function TVPage({
                     const postedDate = DateTime.fromJSDate(
                       review.activity.createdAt,
                     ).toFormat("DD");
-                    const hasLiked = review.activity.activityLikes.some(
-                      (value) => {
-                        return value.user.id === user.id;
-                      },
-                    );
+                    const hasLiked = review.reviewLikes.some((value) => {
+                      return value.activity.user.id === user.id;
+                    });
                     const { media, activity, ...reviewContent } = review;
                     return (
                       <ReviewBlock
@@ -304,9 +343,10 @@ export default async function TVPage({
                         key={index}
                         media={media}
                         watched={watched}
-                        likes={activity.activityLikes}
+                        likes={reviewContent.reviewLikes}
                         hasLiked={hasLiked}
                         ownReview
+                        commentCount={review._count.reviewComments}
                       />
                     );
                   })}
@@ -324,8 +364,8 @@ export default async function TVPage({
                 const postedDate = DateTime.fromJSDate(
                   review.activity.createdAt,
                 ).toFormat("DD");
-                const hasLiked = review.activity.activityLikes.some((value) => {
-                  return value.user.id === user.id;
+                const hasLiked = review.reviewLikes.some((value) => {
+                  return value.activity.user.id === user.id;
                 });
                 const { media, activity, ...reviewContent } = review;
                 return (
@@ -336,8 +376,9 @@ export default async function TVPage({
                     key={index}
                     media={media}
                     watched={watched}
-                    likes={activity.activityLikes}
+                    likes={reviewContent.reviewLikes}
                     hasLiked={hasLiked}
+                    commentCount={review._count.reviewComments}
                   />
                 );
               })}

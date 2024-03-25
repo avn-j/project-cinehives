@@ -6,7 +6,7 @@ import { getUser } from "@/lib/authentication-functions";
 import { User } from "@supabase/supabase-js";
 import { Media } from "@prisma/client";
 import { buildDataForMedias } from "./movie-data-builder";
-import { reviewSchema } from "@/schemas/schemas";
+import { commentSchema, reviewSchema } from "@/schemas/schemas";
 import { z } from "zod";
 
 export async function createNewMedia(media: Media) {
@@ -32,7 +32,7 @@ export async function createNewRating(rating: number, media: Media) {
   await deleteWatched(media);
 
   await createNewMedia(media);
-  await prisma.activity.create({
+  await prisma.mediaActivity.create({
     data: {
       userId: user.id,
       activityType: "rating",
@@ -56,7 +56,7 @@ export async function deleteRating(media: Media) {
 
   if (!user) return null;
 
-  await prisma.activity.deleteMany({
+  await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
       activityType: "rating",
@@ -83,7 +83,7 @@ export async function createNewWatched(media: Media) {
   if (!user) return null;
 
   await createNewMedia(media);
-  await prisma.activity.create({
+  await prisma.mediaActivity.create({
     data: {
       userId: user.id,
       activityType: "watched",
@@ -104,7 +104,7 @@ export async function deleteWatched(media: Media) {
 
   if (!user) return null;
 
-  await prisma.activity.deleteMany({
+  await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
       activityType: "watched",
@@ -140,7 +140,7 @@ export async function addToUserWatchlist(media: Media) {
   if (!user) return null;
 
   await createNewMedia(media);
-  await prisma.activity.create({
+  await prisma.mediaActivity.create({
     data: {
       userId: user.id,
       activityType: "watchlist",
@@ -164,7 +164,7 @@ export async function removeFromUserWatchlist(media: Media) {
   if (!user) return null;
   if (!watchlistId) return null;
 
-  await prisma.activity.deleteMany({
+  await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
       activityType: "watchlist",
@@ -184,7 +184,7 @@ export async function createMediaLike(media: Media) {
   if (!user) return null;
 
   await createNewMedia(media);
-  await prisma.activity.create({
+  await prisma.mediaActivity.create({
     data: {
       userId: user.id,
       activityType: "like",
@@ -205,7 +205,7 @@ export async function deleteMediaLike(media: Media) {
 
   if (!user) return null;
 
-  await prisma.activity.deleteMany({
+  await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
       activityType: "like",
@@ -223,7 +223,7 @@ export async function checkLiked(mediaId: number, user: User) {
   if (!user) return false;
 
   // Get like if
-  const like = await prisma.activity.findFirst({
+  const like = await prisma.mediaActivity.findFirst({
     where: {
       userId: user.id,
       activityType: "like",
@@ -240,7 +240,7 @@ export async function checkWatched(mediaId: number, user: User) {
   if (!user) return false;
 
   // Get like if
-  const watched = await prisma.activity.findFirst({
+  const watched = await prisma.mediaActivity.findFirst({
     where: {
       userId: user.id,
       activityType: "watched",
@@ -273,7 +273,7 @@ export async function checkOnWatchlist(mediaId: number, user: User) {
 export async function checkRating(mediaId: number, user: User) {
   if (!user) return 0;
 
-  const rating = await prisma.activity.findFirst({
+  const rating = await prisma.mediaActivity.findFirst({
     include: {
       mediaRating: true,
     },
@@ -292,7 +292,7 @@ export async function checkRating(mediaId: number, user: User) {
 }
 
 export async function fetchRecentTVActivityRating(userId: string) {
-  const activity = await prisma.activity.findMany({
+  const activity = await prisma.mediaActivity.findMany({
     orderBy: {
       createdAt: "desc",
     },
@@ -342,7 +342,7 @@ export async function fetchRecentTVActivityRating(userId: string) {
 }
 
 export async function fetchRecentFilmActivityRating(userId: string) {
-  const activity = await prisma.activity.findMany({
+  const activity = await prisma.mediaActivity.findMany({
     orderBy: {
       createdAt: "desc",
     },
@@ -454,7 +454,7 @@ export async function createNewMediaReview(
     await createMediaLike(media);
   }
 
-  await prisma.activity.create({
+  await prisma.mediaActivity.create({
     data: {
       userId: user.id,
       activityType: "review",
@@ -542,29 +542,39 @@ export async function getUserReviewForMedia(mediaId: number) {
       liked: true,
       spoiler: true,
       rewatched: true,
+      _count: {
+        select: {
+          reviewComments: true,
+        },
+      },
       activity: {
         select: {
-          activityLikes: {
+          user: {
+            select: {
+              username: true,
+              id: true,
+              profilePictureURL: true,
+            },
+          },
+          createdAt: true,
+        },
+      },
+      reviewLikes: {
+        select: {
+          activity: {
             select: {
               user: {
                 select: {
-                  id: true,
-                  username: true,
                   profilePictureURL: true,
+                  username: true,
+                  id: true,
                 },
               },
             },
           },
-          createdAt: true,
-          user: {
-            select: {
-              id: true,
-              username: true,
-              profilePictureURL: true,
-            },
-          },
         },
       },
+      reviewComments: true,
     },
     orderBy: {
       activity: {
@@ -598,25 +608,34 @@ export async function getRecentReviewsForMedia(mediaId: number) {
       liked: true,
       spoiler: true,
       rewatched: true,
+      _count: {
+        select: {
+          reviewComments: true,
+        },
+      },
       activity: {
         select: {
-          activityLikes: {
+          user: {
             select: {
-              user: {
-                select: {
-                  id: true,
-                  username: true,
-                  profilePictureURL: true,
-                },
-              },
+              username: true,
+              id: true,
+              profilePictureURL: true,
             },
           },
           createdAt: true,
-          user: {
+        },
+      },
+      reviewLikes: {
+        select: {
+          activity: {
             select: {
-              id: true,
-              username: true,
-              profilePictureURL: true,
+              user: {
+                select: {
+                  profilePictureURL: true,
+                  username: true,
+                  id: true,
+                },
+              },
             },
           },
         },
@@ -633,7 +652,7 @@ export async function getRecentReviewsForMedia(mediaId: number) {
 }
 
 export async function deleteReview(activityId: string) {
-  const result = await prisma.activity.delete({
+  const result = await prisma.mediaActivity.delete({
     where: {
       id: activityId,
     },
@@ -643,14 +662,18 @@ export async function deleteReview(activityId: string) {
   return result;
 }
 
-export async function createNewActivityLike(activityId: string) {
+export async function createNewReviewLike(reviewId: string) {
   const user = await getUser();
   if (!user) return null;
 
-  const result = await prisma.activityLike.create({
+  const result = prisma.userActivity.create({
     data: {
-      activityId: activityId,
       userId: user.id,
+      reviewLike: {
+        create: {
+          likedReviewId: reviewId,
+        },
+      },
     },
   });
 
@@ -659,13 +682,192 @@ export async function createNewActivityLike(activityId: string) {
   return result;
 }
 
-export async function deleteNewActivityLike(activityId: string) {
-  const result = await prisma.activityLike.delete({
+export async function deleteReviewLike(reviewId: string) {
+  const user = await getUser();
+  if (!user) return null;
+
+  const result = await prisma.userActivity.deleteMany({
     where: {
-      activityId: activityId,
+      userId: user.id,
+      reviewLike: {
+        likedReviewId: reviewId,
+      },
     },
   });
 
   revalidatePath("/");
   return result;
+}
+
+export async function getReviewById(activityId: string) {
+  const result = await prisma.mediaReview.findUnique({
+    where: {
+      activityId: activityId,
+    },
+    select: {
+      activityId: true,
+      media: true,
+      rating: true,
+      review: true,
+      rewatched: true,
+      spoiler: true,
+      liked: true,
+      _count: {
+        select: {
+          reviewComments: true,
+        },
+      },
+      activity: {
+        select: {
+          user: {
+            select: {
+              username: true,
+              id: true,
+              profilePictureURL: true,
+            },
+          },
+          createdAt: true,
+        },
+      },
+      reviewLikes: {
+        select: {
+          activity: {
+            select: {
+              user: {
+                select: {
+                  username: true,
+                  profilePictureURL: true,
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      reviewComments: {
+        select: {
+          activity: {
+            select: {
+              createdAt: true,
+              user: {
+                select: {
+                  username: true,
+                  profilePictureURL: true,
+                  id: true,
+                },
+              },
+            },
+          },
+          comment: true,
+          activityId: true,
+          commentLikes: {
+            select: {
+              activity: {
+                select: {
+                  user: {
+                    select: {
+                      id: true,
+                      username: true,
+                      profilePictureURL: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return result;
+}
+
+export async function createNewReviewComment(
+  values: z.infer<typeof commentSchema>,
+  reviewId: string,
+) {
+  const parseResult = commentSchema.safeParse(values);
+  if (!parseResult.success) return false;
+
+  const user = await getUser();
+  if (!user) return false;
+
+  const result = await prisma.userActivity.create({
+    data: {
+      userId: user.id,
+      reviewComment: {
+        create: {
+          reviewId: reviewId,
+          comment: values.comment,
+        },
+      },
+    },
+  });
+
+  if (!result) return false;
+
+  revalidatePath("/");
+  return true;
+}
+
+export async function deleteReviewComment(commentId: string) {
+  const result = await prisma.userReviewComment.delete({
+    where: {
+      activityId: commentId,
+    },
+  });
+
+  revalidatePath("/");
+  return result;
+}
+
+export async function createNewReviewCommentLike(commentId: string) {
+  const user = await getUser();
+  if (!user) return null;
+
+  const result = prisma.userActivity.create({
+    data: {
+      userId: user.id,
+      commentLike: {
+        create: {
+          likedCommentId: commentId,
+        },
+      },
+    },
+  });
+
+  revalidatePath("/");
+
+  return result;
+}
+
+export async function deleteReviewCommentLike(commentId: string) {
+  const user = await getUser();
+  if (!user) return null;
+
+  const result = await prisma.userActivity.deleteMany({
+    where: {
+      userId: user.id,
+      commentLike: {
+        likedCommentId: commentId,
+      },
+    },
+  });
+
+  revalidatePath("/");
+  return result;
+}
+
+export async function getMediaType(mediaId: number) {
+  const mediaType = await prisma.media.findUnique({
+    where: {
+      mediaId: mediaId,
+    },
+    select: {
+      mediaType: true,
+    },
+  });
+
+  return mediaType;
 }
