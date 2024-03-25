@@ -871,3 +871,65 @@ export async function getMediaType(mediaId: number) {
 
   return mediaType;
 }
+
+export async function getAllReviewsForMedia(mediaId: number) {
+  const user = await getUser();
+  if (!user) return [];
+
+  const result = await prisma.mediaReview.findMany({
+    where: {
+      mediaId: mediaId,
+      activity: {
+        activityType: "review",
+      },
+    },
+    select: {
+      activityId: true,
+      media: true,
+      review: true,
+      rating: true,
+      liked: true,
+      spoiler: true,
+      rewatched: true,
+      _count: {
+        select: {
+          reviewComments: true,
+        },
+      },
+      activity: {
+        select: {
+          user: {
+            select: {
+              username: true,
+              id: true,
+              profilePictureURL: true,
+            },
+          },
+          createdAt: true,
+        },
+      },
+      reviewLikes: {
+        select: {
+          activity: {
+            select: {
+              user: {
+                select: {
+                  profilePictureURL: true,
+                  username: true,
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      activity: {
+        createdAt: "desc",
+      },
+    },
+  });
+
+  return result;
+}

@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/tooltip";
 import ReviewDialog from "@/components/global/buttons/review-dialog";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function FilmPage({
   params,
@@ -291,6 +292,9 @@ export default async function FilmPage({
 
             <div className="mt-16 flex items-center justify-between">
               <h2 className="text-xl">Recent Reviews</h2>
+              <Link href={`${id}/reviews`}>
+                <Button variant="link">See all reviews</Button>
+              </Link>
             </div>
 
             <Separator className="my-2 bg-stone-50" />

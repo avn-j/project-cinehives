@@ -2,13 +2,7 @@
 
 import { Media, MediaReview, Profile } from "@prisma/client";
 import Image from "next/image";
-import {
-  FaHeart,
-  FaRegHeart,
-  FaReply,
-  FaStar,
-  FaStarHalf,
-} from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaStar, FaStarHalf } from "react-icons/fa";
 import {
   Dialog,
   DialogContent,
@@ -195,26 +189,28 @@ export default function ReviewBlock({
             <DialogTitle>{`Likes for ${reviewUser.username}'s review of ${media.title}`}</DialogTitle>
             <Separator className="bg-white" />
           </DialogHeader>
-          {likes.map((like) => {
-            return (
-              <div
-                key={like.activity.user.id}
-                className="flex items-center gap-3"
-              >
-                <div className="relative h-10 w-10 rounded-full bg-stone-700">
-                  <FaHeart className="absolute bottom-0 right-0 z-10 text-red-500 drop-shadow" />
-                  <Image
-                    src={like.activity.user.profilePictureURL}
-                    alt={like.activity.user.username}
-                    fill={true}
-                    objectFit="cover"
-                    className="border-primary rounded-full"
-                  />
+          <ScrollArea type="hover" className="flex h-[200px]">
+            {likes.map((like) => {
+              return (
+                <div
+                  key={like.activity.user.id}
+                  className="my-2 flex items-center gap-3"
+                >
+                  <div className="relative h-10 w-10 rounded-full bg-stone-700">
+                    <FaHeart className="absolute bottom-0 right-0 z-10 text-red-500 drop-shadow" />
+                    <Image
+                      src={like.activity.user.profilePictureURL}
+                      alt={like.activity.user.username}
+                      fill={true}
+                      objectFit="cover"
+                      className="border-primary rounded-full"
+                    />
+                  </div>
+                  <div className="text-sm">{like.activity.user.username}</div>
                 </div>
-                <div className="text-sm">{like.activity.user.username}</div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>

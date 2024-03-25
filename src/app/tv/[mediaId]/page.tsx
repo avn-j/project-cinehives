@@ -37,6 +37,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Link from "next/link";
 
 export default async function TVPage({
   params,
@@ -356,6 +357,9 @@ export default async function TVPage({
 
             <div className="mt-16 flex items-center justify-between">
               <h2 className="text-xl">Recent Reviews</h2>
+              <Link href={`${id}/reviews`}>
+                <Button variant="link">See all reviews</Button>
+              </Link>
             </div>
 
             <Separator className="my-2 bg-stone-50" />
