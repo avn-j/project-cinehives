@@ -12,17 +12,15 @@ import { redirect } from "next/navigation";
 
 export default async function FilmsPage() {
   const user = await getUser();
-  if (!user) redirect("/");
   const profile = await getUserProfile(user);
-  if (!profile) redirect("/account/setup");
+  if (user && !profile) redirect("/account/setup");
 
   const popularMovieData = await fetchTrendingMovieData(1);
   const initialPopularMovieData = await buildDataForMedias(
     popularMovieData.results,
-    user.id,
   );
 
-  const recentFilmActivity = await fetchRecentFilmActivityRating(user.id);
+  const recentFilmActivity = await fetchRecentFilmActivityRating();
 
   return (
     <>

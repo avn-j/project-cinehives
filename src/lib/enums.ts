@@ -4,8 +4,7 @@ export enum MovieCardStatus {
   Rewatched,
 }
 
-// export enum MediaType {
-//   film,
-//   TV,
-//   anime,
-// }
+export enum USER_FORM_STATE {
+  Login,
+  Register,
+}

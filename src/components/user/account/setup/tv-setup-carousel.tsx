@@ -37,7 +37,6 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
     const topRatedMovieData = await fetchTopTVShowData(next);
     const refinedTopRatedMovieData = await buildDataForMedias(
       topRatedMovieData.results,
-      props.user.id,
     );
 
     setMedia([...refinedTopRatedMovieData]);

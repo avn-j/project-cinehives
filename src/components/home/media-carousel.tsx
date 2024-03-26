@@ -10,11 +10,13 @@ import MovieCard from "@/components/global/movie-card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MediaType } from "@prisma/client";
+import Link from "next/link";
 
 interface MediaCarouselProps {
   mediaCollection: Media[];
   carouselTitle: string;
   mediaType: MediaType;
+  seeAllLink: string;
 }
 
 export default function MediaCarousel({ ...props }: MediaCarouselProps) {
@@ -25,7 +27,7 @@ export default function MediaCarousel({ ...props }: MediaCarouselProps) {
           {props.carouselTitle}
         </h3>
         <Button variant="link" className="text-base">
-          SEE ALL
+          <Link href={props.seeAllLink}> SEE ALL </Link>
         </Button>
       </div>
       <Separator className="mb-4 mt-2 bg-stone-500" />

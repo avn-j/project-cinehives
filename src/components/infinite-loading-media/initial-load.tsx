@@ -43,7 +43,6 @@ export default function InitialLoad({
     if (topRatedMedia?.results.length > 0) {
       const refinedTopRatedMovieData = await buildDataForMedias(
         topRatedMedia.results,
-        user.id,
       );
 
       // Gets unique values to ensure same key render error doesn't occur

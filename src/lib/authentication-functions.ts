@@ -4,6 +4,7 @@ import prisma from "../../prisma/client";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { ProfileStage } from "@prisma/client";
 
 export async function getUser() {
   const supabase = createClient();
@@ -13,14 +14,16 @@ export async function getUser() {
   return data.user;
 }
 
-export async function getUserProfile(user: User) {
+export async function getUserProfile(user: User | null) {
+  if (!user) return null;
+
   let profile = await prisma.profile.findFirst({
     where: {
       id: user.id,
     },
   });
 
-  if (!profile?.profileCreated) return null;
+  if (profile?.profileStage === ProfileStage.account_details) return null;
 
   return profile;
 }
@@ -43,9 +46,9 @@ export async function setProfileFinished(userId: string) {
       id: userId,
     },
     data: {
-      profileCreated: true,
+      profileStage: "created",
     },
   });
 
-  redirect("/home");
+  redirect("/");
 }

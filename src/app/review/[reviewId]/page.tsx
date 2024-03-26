@@ -25,9 +25,8 @@ export default async function ReviewPage({
   params: { reviewId: string };
 }) {
   const user = await getUser();
-  if (!user) redirect("/");
   const profile = await getUserProfile(user);
-  if (!profile) redirect("/account/setup");
+  if (user && !profile) redirect("/account/setup");
 
   const review = await getReviewById(params.reviewId);
   if (!review) notFound();
@@ -46,7 +45,7 @@ export default async function ReviewPage({
     mediaResult = await fetchTVDetailsById(review.media.mediaId.toString());
   }
 
-  const mediaData = await buildDataForMedia(mediaResult, user.id);
+  const mediaData = await buildDataForMedia(mediaResult);
 
   const {
     id,
@@ -62,9 +61,15 @@ export default async function ReviewPage({
     "DD",
   );
 
-  const hasLiked = review.reviewLikes.some((value) => {
-    return value.activity.user.id === user.id;
-  });
+  let hasLiked = false;
+  let ownReview = false;
+
+  if (user) {
+    hasLiked = review.reviewLikes.some((value) => {
+      return value.activity.user.id === user.id;
+    });
+    ownReview = review.activity.user.id === user.id;
+  }
 
   const { media, activity, reviewLikes, reviewComments, ...reviewContent } =
     review;
@@ -76,77 +81,92 @@ export default async function ReviewPage({
       ? release_date.split("-")[0]
       : first_air_date.split("-")[0];
   const watched = mediaData.userActivity.includes("watched");
-  const ownReview = review.activity.user.id === user.id;
 
   return (
     <>
       <Navbar />
-      <div className="relative min-h-[600px]">
-        <Image
-          src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path}
-          layout="fill"
-          className="-z-10 object-cover object-top"
-          alt="Banner"
-        />
-      </div>
-      <Section>
-        <div className="-mt-36 grid grid-cols-4 gap-8">
-          <div>
-            <MovieCard
-              alt={title}
-              id={id}
-              mediaType={mediaType.mediaType}
-              rating={mediaData.rating}
-              src={mediaData.posterPath}
-              title={title}
-              userActivity={mediaData.userActivity}
-            />
-          </div>
 
-          <div className="col-span-3 mt-40">
-            <Link href={`/${mediaType.mediaType}/${id}`}>
-              <h1 className=" text-4xl font-bold">{mediaTitle}</h1>
-            </Link>
-            <h2 className="mt-2 text-3xl">({releaseYear})</h2>
-
-            <div className="mt-8">
-              <ReviewBlock
-                review={{ mediaId: media.mediaId, ...reviewContent }}
-                reviewUser={activity.user}
-                date={postedDate}
-                media={media}
-                ownReview={ownReview}
-                watched={watched}
-                likes={reviewLikes}
-                hasLiked={hasLiked}
-                commentCount={review._count.reviewComments}
+      <main>
+        <div className="relative min-h-[600px]">
+          <Image
+            src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path}
+            layout="fill"
+            className="-z-10 object-cover object-top"
+            alt="Banner"
+          />
+        </div>
+        <Section>
+          <div className="-mt-36 grid grid-cols-4 gap-8">
+            <div>
+              <MovieCard
+                alt={title}
+                id={id}
+                mediaType={mediaType.mediaType}
+                rating={mediaData.rating}
+                src={mediaData.posterPath}
+                title={title}
+                userActivity={mediaData.userActivity}
               />
             </div>
 
-            <h2 className="mt-8 text-xl">Comments ({reviewComments.length})</h2>
-            <Separator className="my-2 bg-white" />
-            {reviewComments.map((comment) => {
-              const postedDate = DateTime.fromJSDate(
-                comment.activity.createdAt,
-              ).toRelative();
-              const ownComment = comment.activity.user.id === user.id;
-              return (
-                <CommentBlock
-                  key={comment.activityId}
-                  commentId={comment.activityId}
-                  commentUser={comment.activity.user}
-                  comment={comment.comment}
-                  date={postedDate}
-                  ownComment={ownComment}
-                  likes={comment.commentLikes}
-                />
-              );
-            })}
+            <div className="col-span-3 mt-40">
+              <Link href={`/${mediaType.mediaType}/${id}`}>
+                <h1 className=" text-4xl font-bold">{mediaTitle}</h1>
+              </Link>
+              <h2 className="mt-2 text-3xl">({releaseYear})</h2>
 
-            <ReviewCommentForm parentReviewId={review.activityId} />
+              <div className="mt-8">
+                <ReviewBlock
+                  review={{ mediaId: media.mediaId, ...reviewContent }}
+                  reviewUser={activity.user}
+                  date={postedDate}
+                  media={media}
+                  ownReview={ownReview}
+                  watched={watched}
+                  likes={reviewLikes}
+                  hasLiked={hasLiked}
+                  commentCount={review._count.reviewComments}
+                />
+              </div>
+
+              <h2 className="mt-8 text-xl">
+                Comments ({reviewComments.length})
+              </h2>
+              <Separator className="my-2 bg-white" />
+              {reviewComments.map((comment) => {
+                const postedDate = DateTime.fromJSDate(
+                  comment.activity.createdAt,
+                ).toRelative();
+
+                let ownComment = false;
+                if (user) {
+                  ownComment = comment.activity.user.id === user.id;
+                }
+
+                return (
+                  <CommentBlock
+                    key={comment.activityId}
+                    commentId={comment.activityId}
+                    commentUser={comment.activity.user}
+                    comment={comment.comment}
+                    date={postedDate}
+                    ownComment={ownComment}
+                    likes={comment.commentLikes}
+                  />
+                );
+              })}
+
+              {review.reviewComments.length === 0 && (
+                <p className="mb-12 mt-4 text-stone-400">
+                  No comments on this review
+                </p>
+              )}
+
+              {user && <ReviewCommentForm parentReviewId={review.activityId} />}
+            </div>
           </div>
-        </div>
-      </Section>
+        </Section>
+      </main>
     </>
   );
 }

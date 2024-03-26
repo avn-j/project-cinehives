@@ -4,15 +4,35 @@ import { User } from "@supabase/supabase-js";
 import prisma from "../../prisma/client";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "./consts";
 import { revalidatePath } from "next/cache";
+import { getUser } from "./authentication-functions";
 
-export async function buildDataForMedias(mediaDbData: any[], userId: string) {
+export async function buildDataForMedias(mediaDbData: any[]) {
+  const user = await getUser();
+
+  if (!user) {
+    const media = mediaDbData.map((media) => {
+      return {
+        id: media.id,
+        title: media.title || media.name,
+        posterPath: MOVIE_DB_IMG_PATH_PREFIX + media.poster_path,
+        rating: -1,
+        userActivity: [],
+      };
+    });
+
+    return media;
+  }
+
   const mediaIds = mediaDbData.map((media) => {
     return media.id;
   });
 
+  const mediaUserActivity: any = {};
+  const mediaRatings: any = {};
+
   const activityResult = await prisma.mediaActivity.findMany({
     where: {
-      userId: userId,
+      userId: user.id,
       mediaId: {
         in: mediaIds,
       },
@@ -24,7 +44,7 @@ export async function buildDataForMedias(mediaDbData: any[], userId: string) {
       mediaRating: true,
     },
     where: {
-      userId: userId,
+      userId: user.id,
       mediaId: {
         in: mediaIds,
       },
@@ -35,9 +55,6 @@ export async function buildDataForMedias(mediaDbData: any[], userId: string) {
       },
     },
   });
-
-  const mediaUserActivity: any = {};
-  const mediaRatings: any = {};
 
   activityResult.forEach((result) => {
     if (!mediaUserActivity[result.mediaId]) {
@@ -76,10 +93,22 @@ export async function buildBannerData(mediaDbData: any[]) {
   return bannerData.slice(0, 5);
 }
 
-export async function buildDataForMedia(media: any, userId: string) {
+export async function buildDataForMedia(media: any) {
+  const user = await getUser();
+
+  if (!user) {
+    return {
+      id: media.id,
+      title: media.title || media.name,
+      posterPath: MOVIE_DB_IMG_PATH_PREFIX + media.poster_path,
+      rating: -1,
+      userActivity: [],
+    };
+  }
+
   const activityResult = await prisma.mediaActivity.findMany({
     where: {
-      userId: userId,
+      userId: user.id,
       mediaId: media.id,
     },
   });
@@ -90,7 +119,7 @@ export async function buildDataForMedia(media: any, userId: string) {
       mediaRating: true,
     },
     where: {
-      userId: userId,
+      userId: user.id,
       mediaId: media.id,
       mediaRating: {
         mediaId: media.id,

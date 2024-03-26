@@ -8,6 +8,7 @@ import { Media } from "@prisma/client";
 import { buildDataForMedias } from "./movie-data-builder";
 import { commentSchema, reviewSchema } from "@/schemas/schemas";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 export async function createNewMedia(media: Media) {
   await prisma.media.upsert({
@@ -291,7 +292,7 @@ export async function checkRating(mediaId: number, user: User) {
   return rating.mediaRating.rating;
 }
 
-export async function fetchRecentTVActivityRating(userId: string) {
+export async function fetchRecentTVActivityRating() {
   const activity = await prisma.mediaActivity.findMany({
     orderBy: {
       createdAt: "desc",
@@ -328,7 +329,7 @@ export async function fetchRecentTVActivityRating(userId: string) {
     };
   });
 
-  const movieData = await buildDataForMedias(media, userId);
+  const movieData = await buildDataForMedias(media);
 
   const mediaWithAllData = media.map((media, index) => {
     return {
@@ -341,7 +342,7 @@ export async function fetchRecentTVActivityRating(userId: string) {
   return mediaWithAllData;
 }
 
-export async function fetchRecentFilmActivityRating(userId: string) {
+export async function fetchRecentFilmActivityRating() {
   const activity = await prisma.mediaActivity.findMany({
     orderBy: {
       createdAt: "desc",
@@ -378,13 +379,13 @@ export async function fetchRecentFilmActivityRating(userId: string) {
     };
   });
 
-  const movieData = await buildDataForMedias(media, userId);
+  const movieData = await buildDataForMedias(media);
 
   const mediaWithAllData = media.map((media, index) => {
     return {
       ...media,
-      rating: movieData[index].rating,
-      userActivity: movieData[index].userActivity,
+      rating: movieData[index].rating || null,
+      userActivity: movieData[index].userActivity || null,
     };
   });
 
@@ -588,7 +589,7 @@ export async function getUserReviewForMedia(mediaId: number) {
 
 export async function getRecentReviewsForMedia(mediaId: number) {
   const user = await getUser();
-  if (!user) return [];
+  const userId = user ? user.id : randomUUID();
 
   const result = await prisma.mediaReview.findMany({
     where: {
@@ -596,7 +597,7 @@ export async function getRecentReviewsForMedia(mediaId: number) {
       activity: {
         activityType: "review",
         NOT: {
-          userId: user.id,
+          userId: userId,
         },
       },
     },
@@ -873,9 +874,6 @@ export async function getMediaType(mediaId: number) {
 }
 
 export async function getAllReviewsForMedia(mediaId: number) {
-  const user = await getUser();
-  if (!user) return [];
-
   const result = await prisma.mediaReview.findMany({
     where: {
       mediaId: mediaId,

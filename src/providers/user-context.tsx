@@ -1,7 +1,7 @@
 "use client";
 
 import { Profile } from "@prisma/client";
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 
 type UserContextProviderProps = {
   children: React.ReactNode;
@@ -22,10 +22,5 @@ export default function UserContextProvider({
 
 export function useUserContext() {
   const context = useContext(UserContext);
-  if (!context) {
-    throw new Error(
-      "useThemeContext must be used within a ThemeContextProvider",
-    );
-  }
   return context;
 }

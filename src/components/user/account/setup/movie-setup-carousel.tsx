@@ -38,7 +38,6 @@ export default function MovieSetupCarousel({
     const topRatedMovieData = await fetchTopMovieData(next);
     const refinedTopRatedMovieData = await buildDataForMedias(
       topRatedMovieData.results,
-      props.user.id,
     );
 
     setMedia([...refinedTopRatedMovieData]);

@@ -13,21 +13,19 @@ export default async function AccountSetup() {
   const user = await getUser();
   if (!user) redirect("/");
   const profile = await getUserProfile(user);
-  if (profile) redirect("/home");
+  if (profile?.profileStage === "created") redirect("/");
 
   const topRatedMovieData = await fetchTopMovieData(1);
   const refinedTopRatedMovieData = await buildDataForMedias(
     topRatedMovieData.results,
-    user.id,
   );
 
   const topRatedTVData = await fetchTopTVShowData(1);
   const refinedTopRatedTVData = await buildDataForMedias(
     topRatedTVData.results,
-    user.id,
   );
 
-  const hasProfileStarted = await checkProfileStarted(user.id);
+  const hasProfileStarted = profile?.profileStage === "onboarding";
 
   return (
     <>

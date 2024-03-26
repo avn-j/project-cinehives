@@ -18,6 +18,8 @@ import {
   deleteReviewCommentLike,
 } from "@/lib/db-actions";
 import { ScrollArea } from "../ui/scroll-area";
+import { useUserContext } from "@/providers/user-context";
+import Link from "next/link";
 
 interface CommentBlockProps {
   commentId: string;
@@ -46,6 +48,8 @@ export default function CommentBlock({
       return state + l;
     },
   );
+
+  const user = useUserContext();
 
   async function handleLike() {
     setLiked(!liked);
@@ -103,21 +107,27 @@ export default function CommentBlock({
                 </Button>
               )}
 
-              <Button
-                variant="link"
-                className=" gap-1 px-0 py-0 text-white"
-                onClick={handleLike}
-              >
-                {liked ? (
-                  <>
-                    <FaHeart className="text-red-500" />
-                  </>
-                ) : (
-                  <>
-                    <FaRegHeart />
-                  </>
-                )}
-              </Button>
+              {user ? (
+                <Button
+                  variant="link"
+                  className=" gap-1 px-0 py-0 text-white"
+                  onClick={handleLike}
+                >
+                  {liked ? (
+                    <>
+                      <FaHeart className="text-red-500" />
+                    </>
+                  ) : (
+                    <>
+                      <FaRegHeart />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Link href="/login">
+                  <FaRegHeart />
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -129,7 +139,7 @@ export default function CommentBlock({
             <DialogTitle>{`Likes for ${commentUser.username}'s comment`}</DialogTitle>
             <Separator className="bg-white" />
           </DialogHeader>
-          <ScrollArea type="hover" className="flex h-[200px]">
+          <ScrollArea className="flex h-[200px]">
             {likes.map((like) => {
               return (
                 <div

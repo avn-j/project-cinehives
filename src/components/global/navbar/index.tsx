@@ -4,15 +4,12 @@ import Image from "next/image";
 import { Button } from "../../ui/button";
 import { FaBell } from "react-icons/fa";
 import { useUserContext } from "@/providers/user-context";
-import { createClient } from "@/lib/supabase/client";
-import { navigateToLogin } from "./actions";
+import { logout } from "./actions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 async function handleLogout() {
-  const supabase = createClient();
-  await supabase.auth.signOut();
-  navigateToLogin();
+  logout();
 }
 
 export default function Navbar() {
@@ -20,7 +17,7 @@ export default function Navbar() {
   const currentPath = usePathname();
 
   return (
-    <div className="fixed z-20 w-full border-b border-stone-900 bg-stone-950 py-6">
+    <nav className="fixed z-20 w-full border-b border-stone-900 bg-stone-950 py-6">
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-12">
@@ -29,7 +26,7 @@ export default function Navbar() {
             </h1>
 
             <ul className="flex gap-8 font-semibold text-white">
-              <li className={currentPath === "/home" ? "text-primary" : ""}>
+              <li className={currentPath === "/" ? "text-primary" : ""}>
                 <Link href="/">Home</Link>
               </li>
               <li>Community</li>
@@ -45,23 +42,44 @@ export default function Navbar() {
             </ul>
           </div>
 
-          <div className="flex items-center gap-8">
-            <Button className="px-12 text-sm text-black" onClick={handleLogout}>
-              Logout
-            </Button>
-            <FaBell color="white" size="1.5rem" />
+          {!user && (
+            <div className="flex gap-2">
+              <Button variant="outline" className="text-white">
+                <Link href="/register" className="px-8">
+                  Register
+                </Link>
+              </Button>
 
-            <div className="relative mr-4 h-12 w-12 rounded-full bg-stone-700">
-              <Image
-                src={user.profilePictureURL}
-                alt="Profile Picture"
-                fill={true}
-                className="border-primary rounded-full border-2 object-cover"
-              />
+              <Button className="text-black">
+                <Link href="/login" className="px-10">
+                  Login
+                </Link>
+              </Button>
             </div>
-          </div>
+          )}
+
+          {user && (
+            <div className="flex items-center gap-8">
+              <Button
+                className="px-12 text-sm text-black"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+              <FaBell color="white" size="1.5rem" />
+
+              <div className="relative mr-4 h-12 w-12 rounded-full bg-stone-700">
+                <Image
+                  src={user.profilePictureURL}
+                  alt="Profile Picture"
+                  fill={true}
+                  className="border-primary rounded-full border-2 object-cover"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

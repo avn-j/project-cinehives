@@ -21,6 +21,12 @@ enum MediaActivityType {
     watchlist
 }
 
+enum ProfileStage {
+    account_details
+    onboarding
+    created
+}
+
 enum MediaType {
     film
     tv
@@ -28,17 +34,17 @@ enum MediaType {
 }
 
 model Profile {
-    id                String   @id @db.Uuid
-    role              Role     @default(user)
-    createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
-    firstName         String   @default("") @map("first_name")
-    lastName          String   @default("") @map("last_name")
-    username          String   @unique @default("")
-    email             String   @unique @db.VarChar()
-    country           String   @default("")
-    dateOfBirth       DateTime @default(now()) @map("date_of_birth")
-    profileCreated    Boolean  @default(false) @map("profile_created")
-    profilePictureURL String   @default("") @map("profile_picture_url")
+    id                String       @id @db.Uuid
+    role              Role         @default(user)
+    createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz()
+    firstName         String       @default("") @map("first_name")
+    lastName          String       @default("") @map("last_name")
+    username          String       @unique @default("")
+    email             String       @unique @db.VarChar()
+    country           String       @default("")
+    dateOfBirth       DateTime     @default(now()) @map("date_of_birth")
+    profilePictureURL String       @default("") @map("profile_picture_url")
+    profileStage      ProfileStage @default(account_details) @map("profile_stage")
 
     mediaActivities MediaActivity[]
     userActivities  UserActivity[]

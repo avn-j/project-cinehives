@@ -5,52 +5,41 @@ import LoginForm from "./login/login-form";
 import RegisterForm from "./register/register-form";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "../ui/button";
+import { USER_FORM_STATE } from "@/lib/enums";
+import Link from "next/link";
 
-enum FORM_STATE {
-  Login,
-  Register,
+interface initialFormState {
+  initialFormState: USER_FORM_STATE;
 }
 
-export default function AccountFormContainer() {
-  const [formState, setFormState] = useState<FORM_STATE>(FORM_STATE.Login);
-
-  function handleFormChange() {
-    formState === FORM_STATE.Login
-      ? setFormState(FORM_STATE.Register)
-      : setFormState(FORM_STATE.Login);
-  }
+export default function AccountFormContainer({
+  initialFormState,
+}: initialFormState) {
+  const [formState, setFormState] = useState<USER_FORM_STATE>(initialFormState);
 
   return (
     <>
-      {formState == FORM_STATE.Login && (
+      {formState == USER_FORM_STATE.Login && (
         <div>
           <LoginForm />
           <Separator className="mt-2 bg-stone-500" />
           <div className="flex items-center">
             <p>{"Don't have an account?"}</p>
-            <Button
-              variant="link"
-              className="px-1 text-base"
-              onClick={handleFormChange}
-            >
-              Register an account
+            <Button variant="link" className="px-1 text-base">
+              <Link href="/register">Register an account</Link>
             </Button>
           </div>
         </div>
       )}
 
-      {formState == FORM_STATE.Register && (
+      {formState == USER_FORM_STATE.Register && (
         <div>
           <RegisterForm />
           <Separator className="mt-10 bg-stone-500" />
           <div className="flex items-center">
             <p className="">Already have an account?</p>
-            <Button
-              variant="link"
-              className="px-1 text-base"
-              onClick={handleFormChange}
-            >
-              Login
+            <Button variant="link" className="px-1 text-base">
+              <Link href="/login">Login</Link>
             </Button>
           </div>
         </div>

@@ -22,5 +22,5 @@ export async function login(values: z.infer<typeof loginFormSchema>) {
 
   if (error) return error.message;
 
-  redirect("/home");
+  redirect("/");
 }

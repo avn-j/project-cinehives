@@ -18,6 +18,8 @@ import { createNewReviewLike, deleteReviewLike } from "@/lib/db-actions";
 import { Separator } from "../ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
+import { getUser } from "@/lib/authentication-functions";
+import { useUserContext } from "@/providers/user-context";
 
 interface ReviewBlockProps {
   review: MediaReview;
@@ -53,6 +55,8 @@ export default function ReviewBlock({
     },
   );
   const [openLikesDialog, setOpenLikesDialog] = useState(false);
+
+  const user = useUserContext();
 
   let halfStar: boolean = false;
 
@@ -94,14 +98,12 @@ export default function ReviewBlock({
           </div>
           <div>
             <p>
-              <Link href={`/review/${review.activityId}`}>
-                <Button
-                  variant="link"
-                  className="h-0 px-0 py-0 text-base text-white"
-                >
-                  Reviewed by
-                </Button>
-              </Link>{" "}
+              <Button
+                variant="link"
+                className="h-0 px-0 py-0 text-base text-white"
+              >
+                <Link href={`/review/${review.activityId}`}>Reviewed by </Link>
+              </Button>{" "}
               {reviewUser.username}
             </p>
             <p className="text-xs text-stone-300">{date}</p>
@@ -144,12 +146,22 @@ export default function ReviewBlock({
           >
             <span className="text-sm">{commentCount}</span>
           </Link>
-          <Link
-            href={`/review/${review.activityId}`}
-            className="flex items-center gap-1 px-0 py-0 font-medium text-white underline-offset-4 hover:underline"
-          >
-            <FaComment /> Reply
-          </Link>
+          <FaComment />
+          {user ? (
+            <Link
+              href={`/review/${review.activityId}`}
+              className="flex items-center gap-1 px-0 py-0 font-medium text-white underline-offset-4 hover:underline"
+            >
+              Reply
+            </Link>
+          ) : (
+            <Link
+              href={`/login`}
+              className="flex items-center gap-1 px-0 py-0 font-medium text-white underline-offset-4 hover:underline"
+            >
+              Reply
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -163,23 +175,32 @@ export default function ReviewBlock({
             </Button>
           )}
 
-          <Button
-            variant="link"
-            className=" gap-1 px-0 py-0 text-white"
-            onClick={handleLike}
-          >
-            {liked ? (
-              <>
-                <FaHeart className="text-red-500" />
-                <p className="text-sm">Unlike</p>
-              </>
-            ) : (
-              <>
+          {user ? (
+            <Button
+              variant="link"
+              className=" gap-1 px-0 py-0 text-white"
+              onClick={handleLike}
+            >
+              {liked ? (
+                <>
+                  <FaHeart className="text-red-500" />
+                  <p className="text-sm">Unlike</p>
+                </>
+              ) : (
+                <>
+                  <FaRegHeart />
+                  <p className="text-sm">Like</p>
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button variant="link" className="px-0 py-0 text-white">
+              <Link href="/login" className="flex items-center gap-1">
                 <FaRegHeart />
-                <p className="text-sm">Like</p>
-              </>
-            )}
-          </Button>
+                <p className="text-sm">Like</p>{" "}
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -189,7 +210,7 @@ export default function ReviewBlock({
             <DialogTitle>{`Likes for ${reviewUser.username}'s review of ${media.title}`}</DialogTitle>
             <Separator className="bg-white" />
           </DialogHeader>
-          <ScrollArea type="hover" className="flex h-[200px]">
+          <ScrollArea className="flex h-[200px]">
             {likes.map((like) => {
               return (
                 <div

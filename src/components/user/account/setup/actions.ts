@@ -56,25 +56,24 @@ export async function updateProfile(formData: FormData) {
 
   const profilePicPublicUrl = getResponse.data.publicUrl;
 
-  try {
-    await prisma.profile.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        firstName,
-        lastName,
-        username: userName,
-        country,
-        dateOfBirth: new Date(dateOfBirth),
-        profilePictureURL: profilePicPublicUrl,
-      },
-    });
-  } catch (err) {}
+  const data = await prisma.profile.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      firstName,
+      lastName,
+      username: userName,
+      country,
+      dateOfBirth: new Date(dateOfBirth),
+      profilePictureURL: profilePicPublicUrl,
+      profileStage: "onboarding",
+    },
+  });
 
-  try {
-    createNewWatchlist(userId);
-  } catch (err) {}
+  console.log(data);
+
+  createNewWatchlist(userId);
 }
 
 export async function checkUsernameValidity(username: string) {
