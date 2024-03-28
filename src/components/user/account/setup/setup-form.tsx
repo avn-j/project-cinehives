@@ -29,6 +29,26 @@ import {
 } from "@/components/ui/select";
 import { checkUsernameValidity, updateProfile } from "./actions";
 import { SETUP_FORMS_TYPES } from "../setup-form-container";
+import Cropper, { getInitialCropFromCroppedAreaPixels } from "react-easy-crop";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+import getCroppedImage from "@/lib/crop-image";
+import { dataURLtoFile } from "@/lib/data-URL-to-File";
+
+type CropArea = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export default function SetupForm({
   handleFormChange,
@@ -39,6 +59,16 @@ export default function SetupForm({
   const [picturePreview, setPicturePreview] = useState<File>();
   const [loading, setLoading] = useState(false);
   const [usernameError, setUsernameError] = useState("");
+  const [image, setImage] = useState<string | undefined>();
+  const [imageCrop, setImageCrop] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  const [cropArea, setCropArea] = useState<CropArea | null>(null);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [openCropperDialog, setOpenCropperDialog] = useState(false);
+  const [croppedArea, setCroppedArea] = useState<CropArea | null>(null);
+  const [croppedImage, setCroppedImage] = useState("");
 
   const form = useForm<z.infer<typeof setupFormSchemaClient>>({
     resolver: zodResolver(setupFormSchemaClient),
@@ -73,7 +103,7 @@ export default function SetupForm({
     formData.append("lastName", lastName);
     formData.append("userName", userName);
     formData.append("dateOfBirth", dateOfBirth.toJSON());
-    formData.append("profilePicture", profilePicture[0]);
+    formData.append("profilePicture", profilePicture);
     formData.append("country", country);
 
     const validUsername = await checkUsernameValidity(userName);
@@ -98,9 +128,40 @@ export default function SetupForm({
     const file = e.target.files?.[0];
     if (file) {
       setPictureSelected(true);
-      setPicturePreview(file);
+      setPicturePreview(undefined);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.addEventListener("load", () => {
+        if (typeof reader.result === "string") {
+          setImage(reader.result);
+          setOpenCropperDialog(true);
+        }
+      });
     }
     return;
+  }
+
+  async function onCropComplete(
+    croppedAreaPercentage: any,
+    croppedAreaPixels: CropArea,
+  ) {
+    const croppedImage = await getCroppedImage(image, croppedAreaPixels);
+    setCroppedImage(croppedImage);
+  }
+
+  function handleDialogClose() {
+    setPictureSelected(false);
+    setPicturePreview(undefined);
+    form.setValue("profilePicture", null);
+  }
+
+  function handleUpload() {
+    const file = dataURLtoFile(croppedImage, "file.jpg");
+    form.setValue("profilePicture", file);
+    console.log(form.getValues());
+    setPicturePreview(file);
+    setPictureSelected(true);
+    setOpenCropperDialog(false);
   }
 
   return (
@@ -299,6 +360,51 @@ export default function SetupForm({
           </div>
         </form>
       </Form>
+
+      <Dialog open={openCropperDialog} onOpenChange={setOpenCropperDialog}>
+        <DialogContent className="w-[900px] bg-black">
+          <DialogHeader>
+            <DialogTitle>Profile Picture</DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
+          <div className="relative h-[400px]">
+            <Cropper
+              image={image}
+              crop={imageCrop}
+              zoom={imageZoom}
+              onCropChange={setImageCrop}
+              onZoomChange={setImageZoom}
+              onCropComplete={onCropComplete}
+              cropShape="round"
+              aspect={1}
+            />
+          </div>
+          <Slider
+            value={[imageZoom]}
+            min={1}
+            max={3}
+            step={0.25}
+            onValueChange={(value) => {
+              setImageZoom(value[0]);
+            }}
+            className="mx-auto w-2/3"
+          />
+          <DialogFooter className="mt-4">
+            <DialogClose asChild>
+              <Button
+                variant="secondary"
+                onClick={handleDialogClose}
+                className="text-black"
+              >
+                Close
+              </Button>
+            </DialogClose>
+            <Button className="text-black" onClick={handleUpload}>
+              Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

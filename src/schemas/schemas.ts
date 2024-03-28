@@ -53,13 +53,12 @@ export const setupFormSchemaClient = z.object({
     .max(16, "Username cannot exceed 16 characters"),
   profilePicture: z
     .any()
-    .refine((file) => file?.length == 1, "File is required.")
-    .refine((file) => file?.length <= 2, "Only one file can be uploaded.")
+    .refine((file) => file.size > 0, "File is required.")
     .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file[0]?.type),
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
       "File is not a .jpg or .png",
     )
-    .refine((file) => file[0]?.size <= MAX_FILE_SIZE, `Max file size is 3MB.`),
+    .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 3MB.`),
   dateOfBirth: z.coerce
     .date()
     // If user inputs a date older than 1990-01-01
