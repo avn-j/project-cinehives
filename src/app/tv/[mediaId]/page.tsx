@@ -46,7 +46,7 @@ export default async function TVPage({
 }) {
   const user = await getUser();
   const profile = await getUserProfile(user);
-  if (!profile) redirect("/account/setup");
+  if (user && !profile) redirect("/account/setup");
 
   const result = await fetchTVDetailsById(params.mediaId);
   if (result.success === false) notFound();
@@ -264,9 +264,11 @@ export default async function TVPage({
               <h1 className=" text-4xl font-bold">
                 {name} {original_name !== name ? `(${original_name})` : ""}
               </h1>
-              <h2 className="mt-2 text-3xl">
-                ({first_air_date.split("-")[0]})
-              </h2>
+              {first_air_date && (
+                <h2 className="mt-2 text-3xl">
+                  ({first_air_date.split("-")[0]})
+                </h2>
+              )}
               {creators.length > 0 && (
                 <p className="mt-2 text-lg">Created by {creators.join(", ")}</p>
               )}
@@ -283,7 +285,7 @@ export default async function TVPage({
               <h2 className="mt-10 text-lg font-bold">{tagline}</h2>
               <p className="mt-3 text-lg leading-7">{overview}</p>
 
-              {status != "Ended" && (
+              {status != "Ended" && last_episode_to_air && (
                 <div className="mt-14">
                   <h2 className="text-xl">Latest Episode</h2>
                   <Separator className="my-2 bg-stone-50" />

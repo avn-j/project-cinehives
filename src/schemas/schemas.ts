@@ -151,3 +151,9 @@ export const commentSchema = z.object({
     message: "Comment cannot be empty",
   }),
 });
+
+export const searchSchema = z.object({
+  search: z.string().min(1, {
+    message: "Search must not be empty",
+  }),
+});

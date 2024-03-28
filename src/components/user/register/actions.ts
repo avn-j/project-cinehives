@@ -21,9 +21,6 @@ export async function register(values: z.infer<typeof registerFormSchema>) {
 
   const { error, data } = await supabase.auth.signUp(registerData);
 
-  console.log(error?.message);
-  console.log(data);
-
   if (data && data.user) {
     if (data.user.role == "")
       return "An account with that email already exists.";

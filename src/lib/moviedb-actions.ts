@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { MOVIE_API_BASE_URL } from "./consts";
 
 export async function fetchPopularMovieData() {
@@ -116,6 +117,20 @@ export async function fetchMovieDetailsById(id: string) {
 
 export async function fetchTVDetailsById(id: string) {
   const url = `${MOVIE_API_BASE_URL}/tv/${id}?append_to_response=aggregate_credits`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${process.env.MOVIEDB_API_READ_TOKEN} `,
+    },
+    cache: "no-cache",
+  });
+
+  return res.json();
+}
+
+export async function fetchMediaByQuery(query: string, page: number) {
+  const url = `${MOVIE_API_BASE_URL}/search/multi?query=${query}&include_adult=false&language=en-US&page=${page}`;
   const res = await fetch(url, {
     method: "GET",
     headers: {

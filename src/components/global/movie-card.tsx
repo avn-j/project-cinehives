@@ -31,9 +31,13 @@ export interface MovieProps {
     rating: number;
   };
   mediaType: MediaType;
+  activityActionsOff?: boolean;
 }
 
-export default function MovieCard({ ...props }: MovieProps) {
+export default function MovieCard({
+  activityActionsOff = false,
+  ...props
+}: MovieProps) {
   const [liked, setLiked] = useState(
     props.userActivity?.includes("like") || false,
   );
@@ -99,7 +103,7 @@ export default function MovieCard({ ...props }: MovieProps) {
             />
           </Link>
         </HoverCardTrigger>
-        {user && (
+        {user && !activityActionsOff && (
           <HoverCardContent
             className="w-full rounded-xl border-0 bg-black bg-opacity-70 shadow-none"
             align="center"

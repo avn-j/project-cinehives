@@ -71,8 +71,6 @@ export async function updateProfile(formData: FormData) {
     },
   });
 
-  console.log(data);
-
   createNewWatchlist(userId);
 }
 
