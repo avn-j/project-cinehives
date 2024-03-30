@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import SearchPagination from "./search-pagination";
-import Link from "next/link";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
 import MovieCard from "./movie-card";
@@ -11,7 +10,6 @@ import { Button } from "../ui/button";
 import { usePathname, useRouter } from "next/navigation";
 
 interface SearchContainerProps {
-  query: string;
   searchResults: {
     all: any[];
     tv: any[];
@@ -24,7 +22,6 @@ interface SearchContainerProps {
 }
 
 export default function SearchContainer({
-  query,
   searchResults,
   page,
   filterType,
@@ -113,11 +110,6 @@ export default function SearchContainer({
       <div className="col-span-6">
         <Separator className="mt-4 bg-white" />
         <div className="mt-8">
-          <div className="flex justify-between">
-            <h2 className="text-3xl font-bold">
-              Search results for {`"${query}"`}
-            </h2>
-          </div>
           <div className="mt-8 space-y-4">
             {results && results.length === 0 && <p>No results found</p>}
 
