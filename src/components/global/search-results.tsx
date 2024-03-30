@@ -26,7 +26,10 @@ async function buildSearchData(searchQuery: string) {
 
   for (let i = allSearchItems.length; i < 1000; ) {
     const searchResponse = await fetchMediaByQuery(searchQuery, searchPage);
-    allSearchItems.push(...searchResponse.results);
+    const filteredSearchResponse = searchResponse.results.filter(
+      (result: any) => result.media_type !== "person",
+    );
+    allSearchItems.push(...filteredSearchResponse);
     if (searchPage === searchResponse.total_pages) break;
     searchPage++;
     i += allSearchItems.length;
