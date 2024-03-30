@@ -158,7 +158,6 @@ export default function SetupForm({
   function handleUpload() {
     const file = dataURLtoFile(croppedImage, "file.jpg");
     form.setValue("profilePicture", file);
-    console.log(form.getValues());
     setPicturePreview(file);
     setPictureSelected(true);
     setOpenCropperDialog(false);
