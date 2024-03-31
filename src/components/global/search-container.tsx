@@ -36,27 +36,29 @@ export default function SearchContainer({
   const filterCategories = ["All", "Films", "TV", "Anime", "Users"];
 
   useEffect(() => {
-    const slicedIndexStart = page === 1 ? 0 : page * 20;
+    const slicedIndexStart = (page - 1) * 20;
     const slicedIndexEnd = slicedIndexStart + 20;
     if (filter === "all") {
-      const slicedResults = [...searchResults.all];
+      const slicedResults = [...searchResults.all, ...searchResults.users];
+      console.log(calculateTotalPages(searchResults.all));
+      console.log(slicedResults.slice(slicedIndexStart, slicedIndexEnd));
       setResults(slicedResults.slice(slicedIndexStart, slicedIndexEnd));
       setTotalPages(calculateTotalPages(searchResults.all));
     }
     if (filter === "tv") {
-      setResults(searchResults.tv.slice(0, 20));
+      setResults(searchResults.tv.slice(slicedIndexStart, slicedIndexEnd));
       setTotalPages(calculateTotalPages(searchResults.tv));
     }
     if (filter === "anime") {
-      setResults(searchResults.anime.slice(0, 20));
+      setResults(searchResults.anime.slice(slicedIndexStart, slicedIndexEnd));
       setTotalPages(calculateTotalPages(searchResults.anime));
     }
     if (filter === "films") {
-      setResults(searchResults.films.slice(0, 20));
+      setResults(searchResults.films.slice(slicedIndexStart, slicedIndexEnd));
       setTotalPages(calculateTotalPages(searchResults.films));
     }
     if (filter === "users") {
-      setResults(searchResults.users.slice(0, 20));
+      setResults(searchResults.users.slice(slicedIndexStart, slicedIndexEnd));
       setTotalPages(calculateTotalPages(searchResults.users));
     }
   }, [filter, searchResults]);
@@ -64,11 +66,7 @@ export default function SearchContainer({
   function calculateTotalPages(array: any[]) {
     if (array.length === 0) return 1;
 
-    const flooredTotalPages = Math.floor(array.length / 20);
-    const totalPages =
-      flooredTotalPages === 1 || flooredTotalPages === 0
-        ? 1
-        : flooredTotalPages - 1;
+    const totalPages = Math.ceil(array.length / 20);
     return totalPages;
   }
 
@@ -111,60 +109,60 @@ export default function SearchContainer({
           <div className="mt-8 space-y-4">
             {results && results.length === 0 && <p>No results found</p>}
 
-            {filter === "users" &&
-              results &&
-              results.map((result: any) => {
-                return (
-                  <div key={result.id} className="my-2 flex items-center gap-3">
-                    <div className="relative h-16 w-16 rounded-full bg-stone-700">
-                      <Image
-                        src={result.profilePictureURL}
-                        alt={result.username}
-                        fill={true}
-                        objectFit="cover"
-                        className="border-primary rounded-full border-2"
-                      />
-                    </div>
-                    <div className="text-lg font-bold">{result.username}</div>
-                  </div>
-                );
-              })}
-
-            {filter !== "users" &&
-              results &&
+            {results &&
               results.map((result: any) => {
                 const mediaType = result.media_type === "movie" ? "film" : "tv";
                 const release = result.first_air_date || result.release_date;
-                return (
-                  <div key={result.id} className="grid grid-cols-12 gap-x-3">
-                    <div>
-                      <MovieCard
-                        mediaType={mediaType}
-                        userActivity={[]}
-                        title={result.name || result.title}
-                        id={result.id}
-                        rating={-1}
-                        src={MOVIE_DB_IMG_PATH_PREFIX + result.poster_path}
-                        alt={result.name || result.title}
-                        activityActionsOff
-                      />
+
+                if (result.username) {
+                  return (
+                    <div
+                      key={result.id}
+                      className="my-2 flex items-center gap-3"
+                    >
+                      <div className="relative h-16 w-16 rounded-full bg-stone-700">
+                        <Image
+                          src={result.profilePictureURL}
+                          alt={result.username}
+                          fill={true}
+                          objectFit="cover"
+                          className="border-primary rounded-full border-2"
+                        />
+                      </div>
+                      <div className="text-lg font-bold">{result.username}</div>
                     </div>
-                    <div className="col-span-11 flex flex-col justify-center">
-                      <h2 className="text-2xl font-bold">
-                        {result.name || result.title}
-                      </h2>
-                      {release && <h3>({release.split("-")[0]})</h3>}
+                  );
+                } else {
+                  return (
+                    <div key={result.id} className="grid grid-cols-12 gap-x-3">
+                      <div>
+                        <MovieCard
+                          mediaType={mediaType}
+                          userActivity={[]}
+                          title={result.name || result.title}
+                          id={result.id}
+                          rating={-1}
+                          src={MOVIE_DB_IMG_PATH_PREFIX + result.poster_path}
+                          alt={result.name || result.title}
+                          activityActionsOff
+                        />
+                      </div>
+                      <div className="col-span-11 flex flex-col justify-center">
+                        <h2 className="text-2xl font-bold">
+                          {result.name || result.title}
+                        </h2>
+                        {release && <h3>({release.split("-")[0]})</h3>}
+                      </div>
                     </div>
-                  </div>
-                );
+                  );
+                }
               })}
           </div>
         </div>
-        {searchResults.all.length !== 0 && (
-          <div>
-            <SearchPagination currentPage={page} totalPages={totalPages} />
-          </div>
-        )}
+
+        <div>
+          <SearchPagination currentPage={page} totalPages={totalPages} />
+        </div>
       </div>
     </div>
   );
