@@ -1,21 +1,27 @@
 "use client";
 
-import { createNewRating, deleteRating } from "@/lib/db-actions";
-import { Media } from "@prisma/client";
+import { MediaDatabase, createNewRating, deleteRating } from "@/lib/db-actions";
 import { MouseEvent, useRef, useState } from "react";
 import { FaStar, FaRegStar, FaXmark } from "react-icons/fa6";
 
 interface StarRatingProps {
   precision: number;
   initialRating?: number;
-  media: Media;
+  media: MediaDatabase;
   toggleRatedHandler: Function;
   handleNewRating: Function;
   toggleWatchedHandler: Function;
 }
 
-export default function StarRating({ ...props }: StarRatingProps) {
-  const [activeStar, setActiveStar] = useState(props.initialRating || -1);
+export default function StarRating({
+  precision,
+  initialRating,
+  media,
+  toggleRatedHandler,
+  toggleWatchedHandler,
+  handleNewRating,
+}: StarRatingProps) {
+  const [activeStar, setActiveStar] = useState(initialRating || -1);
   const [hoverActiveStar, setHoverActiveStar] = useState(-1);
   const [isHovered, setIsHovered] = useState(false);
   const totalStars = 5;
@@ -28,21 +34,18 @@ export default function StarRating({ ...props }: StarRatingProps) {
     let percent = (e.clientX - left) / width;
     const numberInStars = percent * totalStars;
     const nearestNumber =
-      Math.round((numberInStars + props.precision / 2) / props.precision) *
-      props.precision;
+      Math.round((numberInStars + precision / 2) / precision) * precision;
     return Number(
-      nearestNumber.toFixed(
-        props.precision.toString().split(".")[1]?.length || 0,
-      ),
+      nearestNumber.toFixed(precision.toString().split(".")[1]?.length || 0),
     );
   };
 
   function handleClear(e: MouseEvent) {
-    props.handleNewRating(-1);
-    deleteRating(props.media);
+    handleNewRating(-1);
+    deleteRating(media);
     setActiveStar(-1);
     setHoverActiveStar(-1);
-    props.toggleRatedHandler(false);
+    toggleRatedHandler(false);
   }
 
   function handleClick(e: MouseEvent) {
@@ -50,13 +53,13 @@ export default function StarRating({ ...props }: StarRatingProps) {
 
     if (rating == activeStar) return;
 
-    deleteRating(props.media);
+    deleteRating(media);
     setActiveStar(rating);
-    createNewRating(rating, props.media);
+    createNewRating(rating, media);
 
-    props.toggleRatedHandler(true);
-    props.handleNewRating(rating);
-    props.toggleWatchedHandler(true);
+    toggleRatedHandler(true);
+    handleNewRating(rating);
+    toggleWatchedHandler(true);
   }
 
   function handleMouseMove(e: MouseEvent) {

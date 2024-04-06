@@ -14,7 +14,11 @@ import ReviewBlockActions from "./review-block-actions";
 import { FaComment, FaRepeat } from "react-icons/fa6";
 import { Button } from "../ui/button";
 import { startTransition, useOptimistic, useState } from "react";
-import { createNewReviewLike, deleteReviewLike } from "@/lib/db-actions";
+import {
+  MediaDatabase,
+  createNewReviewLike,
+  deleteReviewLike,
+} from "@/lib/db-actions";
 import { Separator } from "../ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
@@ -26,7 +30,7 @@ interface ReviewBlockProps {
   reviewUser: Pick<Profile, "id" | "username" | "profilePictureURL">;
   date: string;
   ownReview?: boolean;
-  media: Media;
+  media: MediaDatabase;
   watched: boolean;
   likes: {
     activity: { user: Pick<Profile, "id" | "username" | "profilePictureURL"> };
@@ -84,7 +88,7 @@ export default function ReviewBlock({
   }
 
   return (
-    <div className="bg-accent rounded-lg p-6">
+    <div className="rounded-lg bg-accent p-6">
       <div className="flex justify-between">
         <div className="flex items-center gap-3">
           <div className="relative h-16 w-16 rounded-full bg-stone-700">
@@ -93,7 +97,7 @@ export default function ReviewBlock({
               alt={reviewUser.username}
               fill={true}
               objectFit="cover"
-              className="border-primary rounded-full "
+              className="rounded-full border-primary "
             />
           </div>
           <div>
@@ -224,7 +228,7 @@ export default function ReviewBlock({
                       alt={like.activity.user.username}
                       fill={true}
                       objectFit="cover"
-                      className="border-primary rounded-full"
+                      className="rounded-full border-primary"
                     />
                   </div>
                   <div className="text-sm">{like.activity.user.username}</div>

@@ -24,7 +24,7 @@ import {
   FaUser,
 } from "react-icons/fa6";
 import SearchBox from "../searchbox";
-import { Exo_2 } from "next/font/google";
+import LogDialog from "../log-dialog";
 
 async function handleLogout() {
   logout();
@@ -39,7 +39,7 @@ export default function Navbar() {
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-12">
-            <h1 className="text-primary text-4xl font-extrabold">
+            <h1 className="text-4xl font-extrabold text-primary">
               <Link href="/">Cinehives</Link>
             </h1>
 
@@ -61,14 +61,20 @@ export default function Navbar() {
           {!user && (
             <div className="flex gap-4">
               <SearchBox />
-              <Button variant="outline" className="text-white">
-                <Link href="/register" className="px-8">
+              <Button variant="outline" className=" px-0 py-0 text-white">
+                <Link
+                  href="/register"
+                  className="flex h-full w-full items-center justify-center  px-8"
+                >
                   Register
                 </Link>
               </Button>
 
-              <Button className="text-black">
-                <Link href="/login" className="px-10">
+              <Button className="px-0 py-0 text-black">
+                <Link
+                  href="/login"
+                  className="flex h-full w-full items-center justify-center  px-10"
+                >
                   Login
                 </Link>
               </Button>
@@ -78,13 +84,10 @@ export default function Navbar() {
           {user && (
             <div className="flex items-center gap-6">
               <SearchBox />
-              <Button
-                size="icon"
-                className="px-0 py-0 text-sm text-black"
-                variant="ghost"
-              >
+              <LogDialog>
                 <FaSquarePlus size={20} className="text-white" />
-              </Button>
+              </LogDialog>
+
               <FaBell color="white" size="1.5rem" />
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger className="flex items-center">
@@ -94,7 +97,7 @@ export default function Navbar() {
                       alt={user.username}
                       fill={true}
                       unoptimized
-                      className="border-primary rounded-full border-2 object-cover"
+                      className="rounded-full border-2 border-primary object-cover"
                     />
                   </div>
                   <FaSortDown className="ml-1" />

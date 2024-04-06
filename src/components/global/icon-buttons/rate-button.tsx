@@ -5,10 +5,10 @@ import {
 } from "@/components/ui/popover";
 import { FaStar } from "react-icons/fa6";
 import StarRating from "../star-rating";
-import { Media } from "@prisma/client";
+import { MediaDatabase } from "@/lib/db-actions";
 
 interface RateButtonProps {
-  media: Media;
+  media: MediaDatabase;
   rated: boolean;
   rating: number;
   toggleRatedHandler: Function;
@@ -16,12 +16,19 @@ interface RateButtonProps {
   toggleWatchedHandler: Function;
 }
 
-export default function RateButton({ ...props }: RateButtonProps) {
+export default function RateButton({
+  media,
+  rated,
+  rating,
+  toggleRatedHandler,
+  toggleWatchedHandler,
+  handleNewRating,
+}: RateButtonProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button>
-          <FaStar size={25} className={props.rated ? "text-primary" : ""} />
+          <FaStar size={25} className={rated ? "text-primary" : ""} />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -34,11 +41,11 @@ export default function RateButton({ ...props }: RateButtonProps) {
         <div className="flex flex-col">
           <StarRating
             precision={0.5}
-            initialRating={props.rating}
-            media={props.media}
-            toggleRatedHandler={props.toggleRatedHandler}
-            toggleWatchedHandler={props.toggleWatchedHandler}
-            handleNewRating={props.handleNewRating}
+            initialRating={rating}
+            media={media}
+            toggleRatedHandler={toggleRatedHandler}
+            toggleWatchedHandler={toggleWatchedHandler}
+            handleNewRating={handleNewRating}
           />
         </div>
       </PopoverContent>

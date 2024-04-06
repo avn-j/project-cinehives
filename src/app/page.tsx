@@ -7,13 +7,14 @@ import {
   fetchPopularTVData,
   fetchFeaturedData,
 } from "@/lib/moviedb-actions";
-import { buildBannerData, buildDataForMedias } from "@/lib/movie-data-builder";
+import {
+  _buildBannerData,
+  _buildAppDataForMedias,
+} from "@/lib/media-data-builder";
 import MediaCarousel from "@/components/home/media-carousel";
 import FeaturedCarousel from "@/components/home/featured-carousel";
-import { MediaType } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FaInfo } from "react-icons/fa6";
 import { FaInfoCircle } from "react-icons/fa";
 import Link from "next/link";
 
@@ -22,18 +23,16 @@ export default async function AppHome() {
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
 
-  const popularMovieData = await fetchPopularMovieData();
-  const popularTVData = await fetchPopularTVData();
-  const featuredMoviesData = await fetchFeaturedData();
+  const _popularMovieData = await fetchPopularMovieData();
+  const _popularTVData = await fetchPopularTVData();
+  const _featuredMoviesData = await fetchFeaturedData();
 
-  const refinedPopularMovieData = await buildDataForMedias(
-    popularMovieData.results,
-  );
+  const filmData = await _buildAppDataForMedias(_popularMovieData.results);
 
-  const refinedPopularTVData = await buildDataForMedias(popularTVData.results);
+  const tvData = await _buildAppDataForMedias(_popularTVData.results);
 
-  const refinedFeaturedMoviesData = await buildBannerData(
-    featuredMoviesData.results,
+  const refinedFeaturedMoviesData = await _buildBannerData(
+    _featuredMoviesData.results,
   );
 
   return (
@@ -46,7 +45,7 @@ export default async function AppHome() {
         />
         <div className="my-16">
           <Section>
-            {profile?.profileStage === "onboarding" && (
+            {profile?.profileStage === "ONBOARDING" && (
               <Alert className="mb-12">
                 <AlertTitle className="flex gap-2">
                   <FaInfoCircle /> Heads up!
@@ -63,25 +62,23 @@ export default async function AppHome() {
             )}
 
             {profile && (
-              <h2 className="text-primary mb-12 text-4xl font-bold">
+              <h2 className="mb-12 text-4xl font-bold text-primary">
                 Welcome, {profile.firstName}
               </h2>
             )}
 
             <div className="">
               <MediaCarousel
-                mediaCollection={refinedPopularMovieData}
+                medias={filmData}
                 carouselTitle="Popular movies this week"
-                mediaType={MediaType.film}
                 seeAllLink="/films"
               />
             </div>
           </Section>
           <Section>
             <MediaCarousel
-              mediaCollection={refinedPopularTVData}
+              medias={tvData}
               carouselTitle="Popular TV shows this week"
-              mediaType={MediaType.tv}
               seeAllLink="/tv-shows"
             />
           </Section>

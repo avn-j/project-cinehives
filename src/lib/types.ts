@@ -1,4 +1,5 @@
 import { MovieCardStatus } from "@/lib/enums";
+import { MediaType } from "@prisma/client";
 
 export interface UserRating {
   username: string;
@@ -6,12 +7,18 @@ export interface UserRating {
   profilePictureSrc: string;
 }
 
-export interface Media {
-  id: number;
+export interface MediaDataWithUserActivity {
+  apiId: number;
   title: string;
   posterPath: string;
   rating: number;
   userActivity: string[];
+  mediaType: MediaType;
+  otherUserActivity?: {
+    username: string;
+    profilePicture: string;
+    rating: number;
+  };
 }
 
 export interface BannerMedia {

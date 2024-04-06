@@ -1,27 +1,34 @@
-import { createMediaLike, deleteMediaLike } from "@/lib/db-actions";
-import { Media } from "@prisma/client";
+import {
+  MediaDatabase,
+  createNewMediaLike,
+  deleteMediaLike,
+} from "@/lib/db-actions";
 import { FaHeart } from "react-icons/fa";
 
 interface LikeButtonProps {
-  media: Media;
+  media: MediaDatabase;
   liked: boolean;
   toggleLikeHandler: Function;
 }
 
-export default function LikeButton({ ...props }: LikeButtonProps) {
+export default function LikeButton({
+  liked,
+  toggleLikeHandler,
+  media,
+}: LikeButtonProps) {
   function handleToggle() {
-    props.toggleLikeHandler(!props.liked);
+    toggleLikeHandler(!liked);
 
-    if (!props.liked) {
-      createMediaLike(props.media);
+    if (!liked) {
+      createNewMediaLike(media);
     } else {
-      deleteMediaLike(props.media);
+      deleteMediaLike(media);
     }
   }
 
   return (
     <button onClick={handleToggle}>
-      <FaHeart size={25} className={props.liked ? "text-red-500" : ""} />
+      <FaHeart size={25} className={liked ? "text-red-500" : ""} />
     </button>
   );
 }

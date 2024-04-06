@@ -2,9 +2,8 @@ import Section from "@/components/global/layout/section";
 import MovieCard from "@/components/global/movie-card";
 import Navbar from "@/components/global/navbar";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
-import { buildDataForMedia } from "@/lib/movie-data-builder";
+import { _buildAppDataForMedia } from "@/lib/media-data-builder";
 import { fetchTVDetailsById } from "@/lib/moviedb-actions";
-import { Media, MediaType } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
@@ -13,6 +12,7 @@ import {
   getAverageRatingForMedia,
   getAllInteractionsForMedia,
   getAllReviewsForMedia,
+  MediaDatabase,
 } from "@/lib/db-actions";
 import { FaEye, FaHeart, FaList } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
@@ -38,8 +38,8 @@ export default async function TVReviewsPage({
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
 
-  const result = await fetchTVDetailsById(params.mediaId);
-  if (result.success === false) notFound();
+  const _apiResult = await fetchTVDetailsById(params.mediaId);
+  if (_apiResult.success === false) notFound();
 
   const {
     original_name,
@@ -52,27 +52,28 @@ export default async function TVReviewsPage({
     next_episode_to_air,
     status,
     backdrop_path,
-  } = result;
+  } = _apiResult;
 
-  const mediaData = await buildDataForMedia(result);
-  const rating = await getAverageRatingForMedia(id);
-  const reviews = await getAllReviewsForMedia(id);
-  const interactions = await getAllInteractionsForMedia(id);
-  const watchedCount = interactions?._count.mediaWatched || 0;
-  const likeCount = interactions?._count.mediaLike || 0;
-  const watchlistCount = interactions?._count.mediaWatchlist || 0;
-  const watched = mediaData.userActivity.includes("watched");
+  const media = await _buildAppDataForMedia(_apiResult);
 
-  const creators = result.created_by
-    ? result.created_by.map((creator: any) => creator.name)
-    : [];
-
-  const mediaDbItem: Media = {
-    mediaId: mediaData.id,
-    title: mediaData.title,
-    posterPath: mediaData.posterPath,
-    mediaType: MediaType.tv,
+  const dbMedia: MediaDatabase = {
+    apiId: media.apiId,
+    mediaType: media.mediaType,
+    posterPath: media.posterPath,
+    title: media.title,
   };
+
+  const rating = await getAverageRatingForMedia(dbMedia);
+  const reviews = await getAllReviewsForMedia(dbMedia);
+  const interactions = await getAllInteractionsForMedia(dbMedia);
+  const watchedCount = interactions?._count.mediaWatches || 0;
+  const likeCount = interactions?._count.mediaLikes || 0;
+  const watchlistCount = interactions?._count.mediaOnWatchlists || 0;
+  const watched = media.userActivity.includes("WATCHED");
+
+  const creators = _apiResult.created_by
+    ? _apiResult.created_by.map((creator: any) => creator.name)
+    : [];
 
   return (
     <>
@@ -91,16 +92,12 @@ export default async function TVReviewsPage({
           <div className="-mt-36 grid grid-cols-4 gap-12">
             <div className="flex flex-col">
               <MovieCard
-                alt={name}
-                id={id}
-                mediaType={MediaType.film}
-                rating={mediaData.rating}
-                src={mediaData.posterPath}
-                title={name}
-                userActivity={mediaData.userActivity}
+                media={dbMedia}
+                rating={media.rating}
+                userActivity={media.userActivity}
               />
 
-              <ReviewDialog media={mediaDbItem} watched={watched}>
+              <ReviewDialog media={dbMedia} watched={watched}>
                 <Button className="mt-4 w-full text-sm text-black">
                   Write a Review
                 </Button>
@@ -241,13 +238,13 @@ export default async function TVReviewsPage({
 
               <div className="mt-16 flex items-center justify-between">
                 <h2 className="text-xl">
-                  All Reviews for {name} ({reviews.length})
+                  All Reviews for {name} ({reviews?.length})
                 </h2>
               </div>
 
               <Separator className="my-2 bg-stone-50" />
               <div className="flex flex-col gap-2">
-                {reviews.map((review, index) => {
+                {reviews?.map((review, index) => {
                   const postedDate = DateTime.fromJSDate(
                     review.activity.createdAt,
                   ).toFormat("DD");
@@ -259,15 +256,15 @@ export default async function TVReviewsPage({
                       return value.activity.user.id === user.id;
                     });
 
-                  const { media, activity, ...reviewContent } = review;
+                  const { relatedMedia, activity, ...reviewContent } = review;
 
                   return (
                     <ReviewBlock
-                      review={{ mediaId: media.mediaId, ...reviewContent }}
+                      review={{ mediaId: media.apiId, ...reviewContent }}
                       reviewUser={activity.user}
                       date={postedDate}
                       key={index}
-                      media={media}
+                      media={dbMedia}
                       watched={watched}
                       likes={reviewContent.reviewLikes}
                       hasLiked={hasLiked}
@@ -275,7 +272,7 @@ export default async function TVReviewsPage({
                     />
                   );
                 })}
-                {reviews.length === 0 && (
+                {reviews?.length === 0 && (
                   <p className="mt-8 text-stone-400">
                     There are no reviews yet for {name}.
                   </p>

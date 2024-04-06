@@ -36,6 +36,10 @@ label {
     font-family: var(--font-raleway);
 }
 
+.rdp-vhidden {
+    @apply hidden;
+}
+
 @layer base {
     :root {
         --background: 0 0% 100%;

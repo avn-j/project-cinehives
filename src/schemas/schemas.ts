@@ -145,6 +145,16 @@ export const reviewSchema = z.object({
   spoilers: z.boolean().default(false).optional(),
 });
 
+export const loggedSchema = z.object({
+  review: z.string().optional(),
+  rewatched: z.boolean().default(false).optional(),
+  spoilers: z.boolean().default(false).optional(),
+  logDate: z.date({
+    required_error: "A watched date is required",
+  }),
+  season: z.string().optional(),
+});
+
 export const commentSchema = z.object({
   comment: z.string().min(1, {
     message: "Comment cannot be empty",

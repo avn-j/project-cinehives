@@ -3,8 +3,7 @@
 import { setupFormSchemaServer } from "@/schemas/schemas";
 import { createClient } from "@/lib/supabase/server";
 import prisma from "../../../../../prisma/client";
-import { createNewWatchlist } from "@/lib/db-actions";
-import { User } from "@supabase/supabase-js";
+import { createNewUserDiary, createNewWatchlist } from "@/lib/db-actions";
 
 export async function updateProfile(formData: FormData) {
   const formValues = {
@@ -67,11 +66,12 @@ export async function updateProfile(formData: FormData) {
       country,
       dateOfBirth: new Date(dateOfBirth),
       profilePictureURL: profilePicPublicUrl,
-      profileStage: "onboarding",
+      profileStage: "ONBOARDING",
     },
   });
 
   createNewWatchlist(userId);
+  createNewUserDiary(userId);
 }
 
 export async function checkUsernameValidity(username: string) {

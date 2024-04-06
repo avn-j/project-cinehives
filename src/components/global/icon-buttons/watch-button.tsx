@@ -1,28 +1,35 @@
 "use client";
 
-import { createNewWatched, deleteWatched } from "@/lib/db-actions";
+import {
+  MediaDatabase,
+  createNewWatched,
+  deleteWatched,
+} from "@/lib/db-actions";
 import { FaEye } from "react-icons/fa";
-import { Media } from "@prisma/client";
 
 interface WatchButtonProps {
-  media: Media;
+  media: MediaDatabase;
   watched: boolean;
   toggleWatchedHandler: Function;
 }
 
-export default function WatchButton({ ...props }: WatchButtonProps) {
+export default function WatchButton({
+  media,
+  watched,
+  toggleWatchedHandler,
+}: WatchButtonProps) {
   function handleToggle() {
-    props.toggleWatchedHandler(!props.watched);
-    if (!props.watched) {
-      createNewWatched(props.media);
+    toggleWatchedHandler(!watched);
+    if (!watched) {
+      createNewWatched(media);
     } else {
-      deleteWatched(props.media);
+      deleteWatched(media);
     }
   }
 
   return (
     <button onClick={handleToggle}>
-      <FaEye size={25} className={props.watched ? "text-primary" : ""} />
+      <FaEye size={25} className={watched ? "text-primary" : ""} />
     </button>
   );
 }

@@ -4,8 +4,7 @@ import "./globals.css";
 import UserContextProvider from "@/providers/user-context";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
 import { Toaster } from "@/components/ui/sonner";
-import { redirect } from "next/navigation";
-import { toast } from "sonner";
+import { Providers } from "./provider";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -35,8 +34,10 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${raleway.variable} ${monsterrat.variable}`}>
       <body>
-        <UserContextProvider value={profile}>{children}</UserContextProvider>
-        <Toaster richColors />
+        <Providers>
+          <UserContextProvider value={profile}>{children}</UserContextProvider>
+          <Toaster richColors />
+        </Providers>
       </body>
     </html>
   );

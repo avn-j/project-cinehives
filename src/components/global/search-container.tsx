@@ -8,6 +8,8 @@ import MovieCard from "./movie-card";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
 import { Button } from "../ui/button";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { _getConvertedMediaType } from "@/lib/helpers";
 
 interface SearchContainerProps {
   searchResults: {
@@ -40,8 +42,6 @@ export default function SearchContainer({
     const slicedIndexEnd = slicedIndexStart + 20;
     if (filter === "all") {
       const slicedResults = [...searchResults.all, ...searchResults.users];
-      console.log(calculateTotalPages(searchResults.all));
-      console.log(slicedResults.slice(slicedIndexStart, slicedIndexEnd));
       setResults(slicedResults.slice(slicedIndexStart, slicedIndexEnd));
       setTotalPages(calculateTotalPages(searchResults.all));
     }
@@ -80,13 +80,13 @@ export default function SearchContainer({
       <div className="relative col-span-2">
         <div className="sticky top-28">
           <h1 className="mb-4 text-xl font-bold">Filter</h1>
-          <div className="bg-accent rounded-lg p-6">
+          <div className="rounded-lg bg-accent p-6">
             <ul className="space-y-3">
               {filterCategories.map((category: string, index: number) => {
                 return (
                   <li
                     key={index}
-                    className={`hover:bg-primary rounded font-bold hover:bg-opacity-80  ${filter === category.toLowerCase() ? "bg-primary " : "null"}`}
+                    className={`rounded font-bold hover:bg-primary hover:bg-opacity-80  ${filter === category.toLowerCase() ? "bg-primary " : "null"}`}
                   >
                     <Button
                       onClick={() => handleFilterChange(category.toLowerCase())}
@@ -111,7 +111,7 @@ export default function SearchContainer({
 
             {results &&
               results.map((result: any) => {
-                const mediaType = result.media_type === "movie" ? "film" : "tv";
+                const convertedMediaType = _getConvertedMediaType(result);
                 const release = result.first_air_date || result.release_date;
 
                 if (result.username) {
@@ -126,7 +126,7 @@ export default function SearchContainer({
                           alt={result.username}
                           fill={true}
                           objectFit="cover"
-                          className="border-primary rounded-full border-2"
+                          className="rounded-full border-2 border-primary"
                         />
                       </div>
                       <div className="text-lg font-bold">{result.username}</div>
@@ -137,21 +137,25 @@ export default function SearchContainer({
                     <div key={result.id} className="grid grid-cols-12 gap-x-3">
                       <div>
                         <MovieCard
-                          mediaType={mediaType}
+                          media={{
+                            apiId: result.id,
+                            mediaType: convertedMediaType,
+                            title: result.name || result.title,
+                            posterPath:
+                              MOVIE_DB_IMG_PATH_PREFIX + result.poster_path,
+                          }}
                           userActivity={[]}
-                          title={result.name || result.title}
-                          id={result.id}
                           rating={-1}
-                          src={MOVIE_DB_IMG_PATH_PREFIX + result.poster_path}
-                          alt={result.name || result.title}
                           activityActionsOff
                         />
                       </div>
                       <div className="col-span-11 flex flex-col justify-center">
-                        <h2 className="text-2xl font-bold">
-                          {result.name || result.title}
-                        </h2>
-                        {release && <h3>({release.split("-")[0]})</h3>}
+                        <Link href={`/${convertedMediaType}/${result.id}`}>
+                          <h2 className="text-2xl font-bold">
+                            {result.name || result.title}
+                          </h2>
+                          {release && <h3>({release.split("-")[0]})</h3>}
+                        </Link>
                       </div>
                     </div>
                   );

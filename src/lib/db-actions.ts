@@ -3,44 +3,146 @@
 import { revalidatePath } from "next/cache";
 import prisma from "../../prisma/client";
 import { getUser } from "@/lib/authentication-functions";
-import { User } from "@supabase/supabase-js";
-import { Media } from "@prisma/client";
-import { buildDataForMedias } from "./movie-data-builder";
-import { commentSchema, reviewSchema } from "@/schemas/schemas";
+import { MediaType } from "@prisma/client";
+import { _buildAppDataForMedias } from "./media-data-builder";
+import { commentSchema, loggedSchema, reviewSchema } from "@/schemas/schemas";
 import { z } from "zod";
 import { randomUUID } from "crypto";
+import { E } from "./errors";
 
-export async function createNewMedia(media: Media) {
-  await prisma.media.upsert({
+export interface DatabaseFilmMedia {
+  title: string;
+  posterPath: string;
+  mediaType: MediaType;
+  apiId: number;
+  season?: never;
+  episode?: never;
+  apiSeasonId?: never;
+  apiEpisodeId?: never;
+}
+
+export interface DatabaseTVMedia {
+  title: string;
+  posterPath: string;
+  apiId: number;
+  mediaType: MediaType;
+  episode?: number;
+  apiSeasonId?: number;
+  apiEpisodeId?: number;
+  season?: number;
+}
+
+export interface ApiIdWithMediaType {
+  apiId: number;
+  mediaType: MediaType;
+}
+
+export type MediaDatabase = DatabaseFilmMedia | DatabaseTVMedia;
+
+export async function getCinehivesMediaId(media: MediaDatabase) {
+  const result = await prisma.media.findUnique({
     where: {
-      mediaId: media.mediaId,
+      apiMovieDbId_mediaType: {
+        apiMovieDbId: media.apiId,
+        mediaType: media.mediaType,
+      },
+    },
+  });
+
+  if (!result) return null;
+  return result.id;
+}
+
+export async function getCinehivesMediaIdsByApiIds(
+  medias: ApiIdWithMediaType[],
+) {
+  const promises = medias.map(async (media) => {
+    const result = await prisma.media.findUnique({
+      where: {
+        apiMovieDbId_mediaType: {
+          apiMovieDbId: media.apiId,
+          mediaType: media.mediaType,
+        },
+      },
+    });
+
+    if (!result) return -1;
+    return result.id;
+  });
+
+  const cinehivesIds = await Promise.all(promises);
+
+  return cinehivesIds;
+}
+
+export async function getCinehivesMediaIdByApiId(media: ApiIdWithMediaType) {
+  const result = await prisma.media.findUnique({
+    where: {
+      apiMovieDbId_mediaType: {
+        apiMovieDbId: media.apiId,
+        mediaType: media.mediaType,
+      },
+    },
+  });
+
+  if (!result) return -1;
+  return result.id;
+}
+
+export async function createNewMedia(media: MediaDatabase) {
+  const dbMedia = await prisma.media.upsert({
+    where: {
+      apiMovieDbId_mediaType: {
+        apiMovieDbId: media.apiId,
+        mediaType: media.mediaType,
+      },
     },
     update: {},
     create: {
-      mediaId: media.mediaId,
-      posterPath: media.posterPath,
-      title: media.title,
+      apiMovieDbId: media.apiId,
       mediaType: media.mediaType,
+      title: media.title,
+      posterPath: media.posterPath,
+      ...(media.mediaType === "FILM"
+        ? {
+            relatedFilmMedia: {
+              create: { title: media.title, posterPath: media.posterPath },
+            },
+          }
+        : {
+            relatedTVMedia: {
+              create: {
+                title: media.title,
+                posterPath: media.posterPath,
+                season: media.season,
+                apiSeasonId: media.apiSeasonId,
+                episode: media.episode,
+                apiEpisodeId: media.apiEpisodeId,
+              },
+            },
+          }),
     },
   });
+
+  return dbMedia.id;
 }
 
-export async function createNewRating(rating: number, media: Media) {
+export async function createNewRating(rating: number, media: MediaDatabase) {
   const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  if (!user) return null;
+  const mediaId = await createNewMedia(media);
 
   await deleteWatched(media);
 
-  await createNewMedia(media);
   await prisma.mediaActivity.create({
     data: {
       userId: user.id,
-      activityType: "rating",
-      mediaId: media.mediaId,
+      activityType: "RATING",
+      mediaId: mediaId,
       mediaRating: {
         create: {
-          mediaId: media.mediaId,
+          mediaId: mediaId,
           rating: rating,
         },
       },
@@ -52,18 +154,18 @@ export async function createNewRating(rating: number, media: Media) {
   revalidatePath("/");
 }
 
-export async function deleteRating(media: Media) {
+export async function deleteRating(media: MediaDatabase) {
   const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  if (!user) return null;
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
-      activityType: "rating",
-      mediaRating: {
-        mediaId: media.mediaId,
-      },
+      activityType: "RATING",
+      mediaId: mediaId,
     },
   });
 
@@ -78,20 +180,20 @@ export async function createNewWatchlist(userId: string) {
   });
 }
 
-export async function createNewWatched(media: Media) {
+export async function createNewWatched(media: MediaDatabase) {
   const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  if (!user) return null;
+  const mediaId = await createNewMedia(media);
 
-  await createNewMedia(media);
   await prisma.mediaActivity.create({
     data: {
       userId: user.id,
-      activityType: "watched",
-      mediaId: media.mediaId,
+      activityType: "WATCHED",
+      mediaId: mediaId,
       mediaWatched: {
         create: {
-          mediaId: media.mediaId,
+          mediaId: mediaId,
         },
       },
     },
@@ -100,18 +202,18 @@ export async function createNewWatched(media: Media) {
   revalidatePath("/");
 }
 
-export async function deleteWatched(media: Media) {
+export async function deleteWatched(media: MediaDatabase) {
   const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  if (!user) return null;
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
-      activityType: "watched",
-      mediaWatched: {
-        mediaId: media.mediaId,
-      },
+      activityType: "WATCHED",
+      mediaId: mediaId,
     },
   });
 
@@ -120,7 +222,7 @@ export async function deleteWatched(media: Media) {
 
 export async function getUserWatchlistId() {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const watchlist = await prisma.watchlist.findUnique({
     where: {
@@ -128,27 +230,26 @@ export async function getUserWatchlistId() {
     },
   });
 
-  if (!watchlist) return null;
+  if (!watchlist) throw Error(E.WATCHLIST_DOES_NOT_EXIST);
 
   return watchlist.id;
 }
 
-export async function addToUserWatchlist(media: Media) {
+export async function addMediaToUserWatchlist(media: MediaDatabase) {
   const user = await getUser();
   const watchlistId = await getUserWatchlistId();
 
-  if (!watchlistId) return null;
-  if (!user) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  await createNewMedia(media);
+  const mediaId = await createNewMedia(media);
   await prisma.mediaActivity.create({
     data: {
       userId: user.id,
-      activityType: "watchlist",
-      mediaId: media.mediaId,
+      activityType: "WATCHLIST",
+      mediaId: mediaId,
       mediaWatchlist: {
         create: {
-          mediaId: media.mediaId,
+          mediaId: mediaId,
           watchlistId: watchlistId,
         },
       },
@@ -158,19 +259,22 @@ export async function addToUserWatchlist(media: Media) {
   revalidatePath("/");
 }
 
-export async function removeFromUserWatchlist(media: Media) {
+export async function deleteFromUserWatchlist(media: MediaDatabase) {
   const user = await getUser();
   const watchlistId = await getUserWatchlistId();
 
-  if (!user) return null;
-  if (!watchlistId) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
+  if (!watchlistId) throw Error(E.WATCHLIST_ID_NOT_FOUND);
+
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
-      activityType: "watchlist",
+      activityType: "WATCHLIST",
+      mediaId: mediaId,
       mediaWatchlist: {
-        mediaId: media.mediaId,
         watchlistId: watchlistId,
       },
     },
@@ -179,20 +283,20 @@ export async function removeFromUserWatchlist(media: Media) {
   revalidatePath("/");
 }
 
-export async function createMediaLike(media: Media) {
+export async function createNewMediaLike(media: MediaDatabase) {
   const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  if (!user) return null;
+  const mediaId = await createNewMedia(media);
 
-  await createNewMedia(media);
   await prisma.mediaActivity.create({
     data: {
       userId: user.id,
-      activityType: "like",
-      mediaId: media.mediaId,
+      activityType: "LIKE",
+      mediaId: mediaId,
       mediaLike: {
         create: {
-          mediaId: media.mediaId,
+          mediaId: mediaId,
         },
       },
     },
@@ -201,68 +305,75 @@ export async function createMediaLike(media: Media) {
   revalidatePath("/");
 }
 
-export async function deleteMediaLike(media: Media) {
+export async function deleteMediaLike(media: MediaDatabase) {
   const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  if (!user) return null;
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   await prisma.mediaActivity.deleteMany({
     where: {
       userId: user.id,
-      activityType: "like",
-      mediaLike: {
-        mediaId: media.mediaId,
-      },
+      activityType: "LIKE",
+      mediaId: mediaId,
     },
   });
 
   revalidatePath("/");
 }
 
-// TODO: get user from getUser()
-export async function checkLiked(mediaId: number, user: User) {
-  if (!user) return false;
+export async function checkLiked(media: MediaDatabase) {
+  const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  // Get like if
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
+
   const like = await prisma.mediaActivity.findFirst({
     where: {
       userId: user.id,
-      activityType: "like",
-      mediaLike: {
-        mediaId: mediaId,
-      },
+      activityType: "LIKE",
+      mediaId: mediaId,
     },
   });
 
   return like ? true : false;
 }
 
-export async function checkWatched(mediaId: number, user: User) {
-  if (!user) return false;
+export async function checkWatched(media: MediaDatabase) {
+  const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  // Get like if
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
+
   const watched = await prisma.mediaActivity.findFirst({
     where: {
       userId: user.id,
-      activityType: "watched",
-      mediaWatched: {
-        mediaId: mediaId,
-      },
+      activityType: "WATCHED",
+      mediaId: mediaId,
     },
   });
 
   return watched ? true : false;
 }
 
-export async function checkOnWatchlist(mediaId: number, user: User) {
-  if (!user) return false;
+export async function checkOnWatchlist(media: MediaDatabase) {
+  const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
+
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   const onWatchlist = await prisma.watchlist.findUnique({
     where: {
       userId: user.id,
-      media: {
+      mediaOnWatchlist: {
         some: {
-          mediaId: mediaId,
+          activity: {
+            mediaId: mediaId,
+          },
         },
       },
     },
@@ -271,8 +382,12 @@ export async function checkOnWatchlist(mediaId: number, user: User) {
   return onWatchlist ? true : false;
 }
 
-export async function checkRating(mediaId: number, user: User) {
-  if (!user) return 0;
+export async function checkRating(media: MediaDatabase) {
+  const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
+
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   const rating = await prisma.mediaActivity.findFirst({
     include: {
@@ -280,10 +395,8 @@ export async function checkRating(mediaId: number, user: User) {
     },
     where: {
       userId: user.id,
-      activityType: "rating",
-      mediaRating: {
-        mediaId: mediaId,
-      },
+      activityType: "RATING",
+      mediaId: mediaId,
     },
   });
 
@@ -298,9 +411,9 @@ export async function fetchRecentTVActivityRating() {
       createdAt: "desc",
     },
     where: {
-      activityType: "rating",
+      activityType: "RATING",
       media: {
-        mediaType: "tv",
+        mediaType: "TV",
       },
     },
     select: {
@@ -310,7 +423,14 @@ export async function fetchRecentTVActivityRating() {
           profilePictureURL: true,
         },
       },
-      media: true,
+      media: {
+        select: {
+          apiMovieDbId: true,
+          id: true,
+          relatedTVMedia: true,
+          mediaType: true,
+        },
+      },
       mediaRating: true,
     },
     take: 5,
@@ -318,24 +438,26 @@ export async function fetchRecentTVActivityRating() {
 
   const media = activity.map((activity) => {
     return {
-      id: activity.media.mediaId,
-      title: activity.media.title,
-      poster_path: activity.media.posterPath,
+      id: activity.media.id,
+      apiId: activity.media.apiMovieDbId,
+      title: activity.media.relatedTVMedia?.title,
+      posterPath: activity.media.relatedTVMedia?.posterPath,
+      mediaType: activity.media.mediaType,
       otherUserActivity: {
         username: activity.user.username,
-        profilePicture: activity.user.profilePictureURL,
+        profilePictureURL: activity.user.profilePictureURL,
         rating: activity.mediaRating?.rating || -1,
       },
     };
   });
 
-  const movieData = await buildDataForMedias(media);
+  const tvData = await _buildAppDataForMedias(media);
 
   const mediaWithAllData = media.map((media, index) => {
     return {
       ...media,
-      rating: movieData[index].rating,
-      userActivity: movieData[index].userActivity,
+      rating: tvData[index].rating || null,
+      userActivity: tvData[index].userActivity || null,
     };
   });
 
@@ -348,9 +470,9 @@ export async function fetchRecentFilmActivityRating() {
       createdAt: "desc",
     },
     where: {
-      activityType: "rating",
+      activityType: "RATING",
       media: {
-        mediaType: "film",
+        mediaType: "FILM",
       },
     },
     select: {
@@ -360,7 +482,14 @@ export async function fetchRecentFilmActivityRating() {
           profilePictureURL: true,
         },
       },
-      media: true,
+      media: {
+        select: {
+          apiMovieDbId: true,
+          id: true,
+          relatedFilmMedia: true,
+          mediaType: true,
+        },
+      },
       mediaRating: true,
     },
     take: 5,
@@ -368,31 +497,37 @@ export async function fetchRecentFilmActivityRating() {
 
   const media = activity.map((activity) => {
     return {
-      id: activity.media.mediaId,
-      title: activity.media.title,
-      poster_path: activity.media.posterPath,
+      id: activity.media.id,
+      apiId: activity.media.apiMovieDbId,
+      title: activity.media.relatedFilmMedia?.title,
+      posterPath: activity.media.relatedFilmMedia?.posterPath,
+      mediaType: activity.media.mediaType,
       otherUserActivity: {
         username: activity.user.username,
-        profilePicture: activity.user.profilePictureURL,
+        profilePictureURL: activity.user.profilePictureURL,
         rating: activity.mediaRating?.rating || -1,
       },
     };
   });
 
-  const movieData = await buildDataForMedias(media);
+  const tvData = await _buildAppDataForMedias(media);
 
   const mediaWithAllData = media.map((media, index) => {
     return {
       ...media,
-      rating: movieData[index].rating || null,
-      userActivity: movieData[index].userActivity || null,
+      rating: tvData[index].rating || null,
+      userActivity: tvData[index].userActivity || null,
     };
   });
 
   return mediaWithAllData;
 }
 
-export async function getAverageRatingForMedia(mediaId: number) {
+export async function getAverageRatingForMedia(media: MediaDatabase) {
+
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
+
   const result = await prisma.mediaRating.aggregate({
     where: {
       mediaId: mediaId,
@@ -410,19 +545,22 @@ export async function getAverageRatingForMedia(mediaId: number) {
   return result;
 }
 
-export async function getAllInteractionsForMedia(mediaId: number) {
+export async function getAllInteractionsForMedia(media: MediaDatabase) {
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
+
   const interactions = await prisma.media.findFirst({
     where: {
-      mediaId: mediaId,
+      id: mediaId,
     },
     select: {
       _count: {
         select: {
-          mediaLike: true,
-          mediaRating: true,
-          mediaReview: true,
-          mediaWatched: true,
-          mediaWatchlist: true,
+          mediaLikes: true,
+          mediaRatings: true,
+          mediaReviews: true,
+          mediaWatches: true,
+          mediaOnWatchlists: true,
         },
       },
     },
@@ -433,17 +571,17 @@ export async function getAllInteractionsForMedia(mediaId: number) {
 
 export async function createNewMediaReview(
   values: z.infer<typeof reviewSchema>,
-  media: Media,
+  media: MediaDatabase,
   rating: number | null,
   liked: boolean,
 ) {
   const result = reviewSchema.safeParse(values);
 
-  if (!result.success) return false;
+  if (!result.success) throw Error(E.SCHEMA_PARSING_ERROR);
   const user = await getUser();
-  if (!user) return false;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-  await createNewMedia(media);
+  const mediaId = await createNewMedia(media);
 
   if (rating) {
     await deleteRating(media);
@@ -452,17 +590,17 @@ export async function createNewMediaReview(
 
   if (liked) {
     await deleteMediaLike(media);
-    await createMediaLike(media);
+    await createNewMediaLike(media);
   }
 
   await prisma.mediaActivity.create({
     data: {
       userId: user.id,
-      activityType: "review",
-      mediaId: media.mediaId,
+      activityType: "REVIEW",
+      mediaId: mediaId,
       mediaReview: {
         create: {
-          mediaId: media.mediaId,
+          mediaId: mediaId,
           review: values.review,
           rating,
           liked,
@@ -480,7 +618,7 @@ export async function createNewMediaReview(
 
 export async function updateMediaReview(
   values: z.infer<typeof reviewSchema>,
-  media: Media,
+  media: MediaDatabase,
   oldRating: number | null,
   rating: number | null,
   oldLiked: boolean,
@@ -489,11 +627,9 @@ export async function updateMediaReview(
 ) {
   const result = reviewSchema.safeParse(values);
 
-  if (!result.success) return false;
+  if (!result.success) throw Error(E.SCHEMA_PARSING_ERROR);
   const user = await getUser();
-  if (!user) return false;
-
-  await createNewMedia(media);
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   if (rating && rating !== oldRating) {
     await deleteRating(media);
@@ -502,7 +638,7 @@ export async function updateMediaReview(
 
   if (oldLiked !== liked) {
     if (!liked) await deleteMediaLike(media);
-    else await createMediaLike(media);
+    else await createNewMediaLike(media);
   }
 
   await prisma.mediaReview.update({
@@ -523,21 +659,32 @@ export async function updateMediaReview(
   return true;
 }
 
-export async function getUserReviewForMedia(mediaId: number) {
+export async function getUserReviewForMedia(media: MediaDatabase) {
   const user = await getUser();
   if (!user) return [];
+
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   const result = await prisma.mediaReview.findMany({
     where: {
       mediaId: mediaId,
       activity: {
-        activityType: "review",
+        activityType: "REVIEW",
         userId: user.id,
       },
     },
     select: {
       activityId: true,
-      media: true,
+      relatedMedia: {
+        select: {
+          apiMovieDbId: true,
+          id: true,
+          mediaType: true,
+          relatedTVMedia: true,
+          relatedFilmMedia: true,
+        },
+      },
       review: true,
       rating: true,
       liked: true,
@@ -587,15 +734,18 @@ export async function getUserReviewForMedia(mediaId: number) {
   return result;
 }
 
-export async function getRecentReviewsForMedia(mediaId: number) {
+export async function getRecentReviewsForMedia(media: MediaDatabase) {
   const user = await getUser();
   const userId = user ? user.id : randomUUID();
+
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
   const result = await prisma.mediaReview.findMany({
     where: {
       mediaId: mediaId,
       activity: {
-        activityType: "review",
+        activityType: "REVIEW",
         NOT: {
           userId: userId,
         },
@@ -603,7 +753,15 @@ export async function getRecentReviewsForMedia(mediaId: number) {
     },
     select: {
       activityId: true,
-      media: true,
+      relatedMedia: {
+        select: {
+          apiMovieDbId: true,
+          id: true,
+          mediaType: true,
+          relatedTVMedia: true,
+          relatedFilmMedia: true,
+        },
+      },
       review: true,
       rating: true,
       liked: true,
@@ -707,7 +865,15 @@ export async function getReviewById(activityId: string) {
     },
     select: {
       activityId: true,
-      media: true,
+      relatedMedia: {
+        select: {
+          apiMovieDbId: true,
+          id: true,
+          mediaType: true,
+          relatedTVMedia: true,
+          relatedFilmMedia: true,
+        },
+      },
       rating: true,
       review: true,
       rewatched: true,
@@ -860,30 +1026,28 @@ export async function deleteReviewCommentLike(commentId: string) {
   return result;
 }
 
-export async function getMediaType(mediaId: number) {
-  const mediaType = await prisma.media.findUnique({
-    where: {
-      mediaId: mediaId,
-    },
-    select: {
-      mediaType: true,
-    },
-  });
+export async function getAllReviewsForMedia(media: MediaDatabase) {
+  const mediaId = await getCinehivesMediaId(media);
+  if (!mediaId) return;
 
-  return mediaType;
-}
-
-export async function getAllReviewsForMedia(mediaId: number) {
   const result = await prisma.mediaReview.findMany({
     where: {
       mediaId: mediaId,
       activity: {
-        activityType: "review",
+        activityType: "REVIEW",
       },
     },
     select: {
       activityId: true,
-      media: true,
+      relatedMedia: {
+        select: {
+          apiMovieDbId: true,
+          id: true,
+          mediaType: true,
+          relatedTVMedia: true,
+          relatedFilmMedia: true,
+        },
+      },
       review: true,
       rating: true,
       liked: true,
@@ -930,4 +1094,92 @@ export async function getAllReviewsForMedia(mediaId: number) {
   });
 
   return result;
+}
+
+export async function createNewDiaryEntry(
+  values: z.infer<typeof loggedSchema>,
+  media: MediaDatabase,
+  rating: number,
+  liked: boolean,
+) {
+  const parseResult = loggedSchema.safeParse(values);
+  if (!parseResult.success) return false;
+
+  const user = await getUser();
+  const diaryId = await getUserDiaryId();
+
+  if (!diaryId) return false;
+  if (!user) return false;
+
+  const mediaId = await createNewMedia(media);
+
+  if (rating) {
+    await deleteRating(media);
+    await createNewRating(rating, media);
+  }
+
+  if (liked) {
+    await deleteMediaLike(media);
+    await createNewMediaLike(media);
+  }
+
+  await prisma.mediaActivity.create({
+    data: {
+      userId: user.id,
+      activityType: "DIARY_ENTRY",
+      mediaId: mediaId,
+      mediaDiaryEntry: {
+        create: {
+          diaryId: diaryId,
+          mediaId: mediaId,
+          loggedDate: values.logDate,
+        },
+      },
+    },
+  });
+
+  if (values.review) {
+    await prisma.mediaActivity.create({
+      data: {
+        userId: user.id,
+        activityType: "REVIEW",
+        mediaId: mediaId,
+        mediaReview: {
+          create: {
+            mediaId: mediaId,
+            review: values.review,
+            rating,
+            liked,
+            spoiler: values.spoilers,
+            rewatched: values.rewatched,
+          },
+        },
+      },
+    });
+  }
+
+  revalidatePath("/");
+  return true;
+}
+
+export async function createNewUserDiary(userId: string) {
+  await prisma.userDiary.create({
+    data: {
+      userId: userId,
+    },
+  });
+}
+
+export async function getUserDiaryId() {
+  const user = await getUser();
+  if (!user) return null;
+
+  const diary = await prisma.userDiary.findUnique({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  if (!diary) return null;
+  return diary.id;
 }

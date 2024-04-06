@@ -7,38 +7,38 @@ import {
 } from "@/lib/authentication-functions";
 import SetupFormContainer from "@/components/user/account/setup-form-container";
 import { fetchTopMovieData, fetchTopTVShowData } from "@/lib/moviedb-actions";
-import { buildDataForMedias } from "@/lib/movie-data-builder";
+import { _buildAppDataForMedias } from "@/lib/media-data-builder";
 
 export default async function AccountSetup() {
   const user = await getUser();
   if (!user) redirect("/");
   const profile = await getUserProfile(user);
-  if (profile?.profileStage === "created") redirect("/");
+  if (profile?.profileStage === "CREATED") redirect("/");
 
-  const topRatedMovieData = await fetchTopMovieData(1);
-  const refinedTopRatedMovieData = await buildDataForMedias(
-    topRatedMovieData.results,
+  const _apiTopRatedFilmData = await fetchTopMovieData(1);
+  const topRatedFilmData = await _buildAppDataForMedias(
+    _apiTopRatedFilmData.results,
   );
 
-  const topRatedTVData = await fetchTopTVShowData(1);
-  const refinedTopRatedTVData = await buildDataForMedias(
-    topRatedTVData.results,
+  const _apiTopRatedTVData = await fetchTopTVShowData(1);
+  const topRatedTVData = await _buildAppDataForMedias(
+    _apiTopRatedTVData.results,
   );
 
-  const hasProfileStarted = profile?.profileStage === "onboarding";
+  const hasProfileStarted = profile?.profileStage === "ONBOARDING";
 
   return (
     <>
       <div className="w-full border-b border-stone-900 py-6">
         <div className="container mx-auto">
-          <h1 className="text-primary text-4xl font-extrabold">Cinehives</h1>
+          <h1 className="text-4xl font-extrabold text-primary">Cinehives</h1>
         </div>
       </div>
       <main>
         <Section>
           <SetupFormContainer
-            movieCollection={refinedTopRatedMovieData}
-            tvShowCollection={refinedTopRatedTVData}
+            movieCollection={topRatedFilmData}
+            tvShowCollection={topRatedTVData}
             user={user}
             profileStarted={hasProfileStarted}
           />

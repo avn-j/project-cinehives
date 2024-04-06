@@ -23,7 +23,7 @@ export async function getUserProfile(user: User | null) {
     },
   });
 
-  if (profile?.profileStage === ProfileStage.account_details) return null;
+  if (profile?.profileStage === ProfileStage.ACCOUNT_DETAILS) return null;
 
   return profile;
 }
@@ -46,7 +46,7 @@ export async function setProfileFinished(userId: string) {
       id: userId,
     },
     data: {
-      profileStage: "created",
+      profileStage: "CREATED",
     },
   });
 

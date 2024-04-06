@@ -13,7 +13,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { reviewSchema } from "@/schemas/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Media } from "@prisma/client";
 import Image from "next/image";
 import { MouseEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -28,17 +27,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { createNewMediaReview } from "@/lib/db-actions";
+import { MediaDatabase, createNewMediaReview } from "@/lib/db-actions";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 
 interface ReviewDialogProps {
-  media: Media;
+  media: MediaDatabase;
   children: React.ReactNode;
   watched: boolean;
 }
 
-export default function ReviewDialog({ ...props }: ReviewDialogProps) {
+export default function ReviewDialog({
+  media,
+  children,
+  watched,
+}: ReviewDialogProps) {
   const [liked, setLiked] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,8 +57,8 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
   });
 
   useEffect(() => {
-    form.setValue("rewatched", props.watched);
-  }, []);
+    form.setValue("rewatched", watched);
+  }, [watched, form]);
 
   function handleLikeToggle() {
     setLiked(!liked);
@@ -68,12 +71,7 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
   async function handleSubmit(values: z.infer<typeof reviewSchema>) {
     setLoading(true);
 
-    const response = await createNewMediaReview(
-      values,
-      props.media,
-      rating,
-      liked,
-    );
+    const response = await createNewMediaReview(values, media, rating, liked);
 
     setLoading(false);
 
@@ -89,15 +87,15 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
 
   return (
     <Dialog open={openModal} onOpenChange={setOpenModal}>
-      <DialogTrigger asChild>{props.children}</DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="bg-black sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Review for {props.media.title}</DialogTitle>
+          <DialogTitle>Review for {media.title}</DialogTitle>
         </DialogHeader>
         <div className="mt-4 grid grid-cols-3">
           <Image
-            src={props.media.posterPath}
-            alt={props.media.title}
+            src={media.posterPath}
+            alt={media.title}
             width={150}
             height={150}
             className="col-span-1"
@@ -193,7 +191,7 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
                   <DialogClose asChild>
                     <Button
                       type="button"
-                      className="bg-secondary mt-6 text-stone-950"
+                      className="mt-6 bg-secondary text-stone-950"
                       disabled={loading}
                     >
                       Cancel
@@ -217,12 +215,13 @@ export default function ReviewDialog({ ...props }: ReviewDialogProps) {
 }
 
 export function StarRating({
-  ...props
+  initialRating,
+  handleRating,
 }: {
   handleRating: Function;
   initialRating?: number;
 }) {
-  const [activeStar, setActiveStar] = useState(props.initialRating || -1);
+  const [activeStar, setActiveStar] = useState(initialRating || -1);
   const [hoverActiveStar, setHoverActiveStar] = useState(-1);
   const [isHovered, setIsHovered] = useState(false);
   const totalStars = 5;
@@ -233,7 +232,7 @@ export function StarRating({
   function handleClear(e: MouseEvent) {
     setActiveStar(-1);
     setHoverActiveStar(-1);
-    props.handleRating(null);
+    handleRating(null);
   }
 
   function handleClick(e: MouseEvent) {
@@ -242,7 +241,7 @@ export function StarRating({
     if (rating === activeStar) return;
 
     setActiveStar(rating);
-    props.handleRating(rating);
+    handleRating(rating);
   }
 
   const calculateRating = (e: MouseEvent) => {

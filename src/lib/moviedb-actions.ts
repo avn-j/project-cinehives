@@ -142,3 +142,17 @@ export async function fetchMediaByQuery(query: string, page: number) {
 
   return res.json();
 }
+
+export async function fetchMediaByQueryList(query: string) {
+  const url = `${MOVIE_API_BASE_URL}/search/multi?query=${query}&include_adult=false&language=en-US&page=1`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${process.env.MOVIEDB_API_READ_TOKEN} `,
+    },
+    cache: "no-cache",
+  });
+
+  return [];
+}

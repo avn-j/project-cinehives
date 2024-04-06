@@ -7,27 +7,31 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Media } from "@/lib/types";
 import MovieCard from "@/components/global/movie-card";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FaEye, FaHeart, FaList, FaStar } from "react-icons/fa";
 import { fetchTopTVShowData } from "@/lib/moviedb-actions";
-import { buildDataForMedias } from "@/lib/movie-data-builder";
+import { _buildAppDataForMedias } from "@/lib/media-data-builder";
 import { User } from "@supabase/supabase-js";
 import { setProfileFinished } from "@/lib/authentication-functions";
 import { MediaType } from "@prisma/client";
+import { MediaDataWithUserActivity } from "@/lib/types";
 
 interface MediaSetupCarouselProps {
-  initialMediaCollection: Media[];
+  initialMediaCollection: MediaDataWithUserActivity[];
   user: User;
   handleFormChange: Function;
 }
 
-export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
+export default function TVSetupCarousel({
+  initialMediaCollection,
+  user,
+  handleFormChange,
+}: MediaSetupCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [page, setPage] = useState(1);
-  const [media, setMedia] = useState(props.initialMediaCollection);
+  const [media, setMedia] = useState(initialMediaCollection);
   const [carouselEnd, setCarouselEnd] = useState(false);
   const [finishClicked, setFinishedClicked] = useState(false);
 
@@ -35,7 +39,7 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
     const next = page + 1;
 
     const topRatedMovieData = await fetchTopTVShowData(next);
-    const refinedTopRatedMovieData = await buildDataForMedias(
+    const refinedTopRatedMovieData = await _buildAppDataForMedias(
       topRatedMovieData.results,
     );
 
@@ -51,7 +55,7 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
 
   function handleFinish() {
     setFinishedClicked(true);
-    setProfileFinished(props.user.id);
+    setProfileFinished(user.id);
   }
 
   useEffect(() => {
@@ -77,18 +81,19 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
           setApi={setApi}
         >
           <CarouselContent>
-            {media.map((media: Media) => {
+            {media.map((media: MediaDataWithUserActivity) => {
               return (
-                <CarouselItem key={media.id}>
+                <CarouselItem key={media.apiId}>
                   <div className="flex justify-center">
                     <MovieCard
-                      title={media.title}
-                      id={media.id}
-                      alt={media.title}
-                      src={media.posterPath}
+                      media={{
+                        apiId: media.apiId,
+                        mediaType: media.mediaType,
+                        posterPath: media.posterPath,
+                        title: media.title,
+                      }}
                       rating={media.rating}
                       userActivity={media.userActivity}
-                      mediaType={MediaType.tv}
                     />
                   </div>
                 </CarouselItem>
@@ -127,7 +132,7 @@ export default function TVSetupCarousel({ ...props }: MediaSetupCarouselProps) {
 
         <div className="flex gap-4">
           <Button
-            className="bg-secondary mt-8 w-1/3 px-6 text-base text-stone-950"
+            className="mt-8 w-1/3 bg-secondary px-6 text-base text-stone-950"
             disabled={!carouselEnd}
             onClick={handleShowMore}
           >

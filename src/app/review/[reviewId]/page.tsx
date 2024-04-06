@@ -7,8 +7,8 @@ import ReviewBlock from "@/components/global/review-block";
 import { Separator } from "@/components/ui/separator";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
-import { getMediaType, getReviewById } from "@/lib/db-actions";
-import { buildDataForMedia } from "@/lib/movie-data-builder";
+import { MediaDatabase, getReviewById } from "@/lib/db-actions";
+import { _buildAppDataForMedia } from "@/lib/media-data-builder";
 import {
   fetchMovieDetailsById,
   fetchTVDetailsById,
@@ -31,21 +31,23 @@ export default async function ReviewPage({
   const review = await getReviewById(params.reviewId);
   if (!review) notFound();
 
-  const mediaType = await getMediaType(review.media.mediaId);
-
-  if (!mediaType) {
+  if (!review.relatedMedia) {
     notFound();
   }
 
-  let mediaResult;
+  let _apiResult;
 
-  if (mediaType.mediaType == MediaType.film) {
-    mediaResult = await fetchMovieDetailsById(review.media.mediaId.toString());
+  if (review.relatedMedia.mediaType == MediaType.FILM) {
+    _apiResult = await fetchMovieDetailsById(
+      review.relatedMedia.apiMovieDbId.toString(),
+    );
   } else {
-    mediaResult = await fetchTVDetailsById(review.media.mediaId.toString());
+    _apiResult = await fetchTVDetailsById(
+      review.relatedMedia.apiMovieDbId.toString(),
+    );
   }
 
-  const mediaData = await buildDataForMedia(mediaResult);
+  const media = await _buildAppDataForMedia(_apiResult);
 
   const {
     id,
@@ -55,7 +57,7 @@ export default async function ReviewPage({
     original_title,
     release_date,
     backdrop_path,
-  } = mediaResult;
+  } = _apiResult;
 
   const postedDate = DateTime.fromJSDate(review.activity.createdAt).toFormat(
     "DD",
@@ -71,16 +73,28 @@ export default async function ReviewPage({
     ownReview = review.activity.user.id === user.id;
   }
 
-  const { media, activity, reviewLikes, reviewComments, ...reviewContent } =
-    review;
+  const {
+    relatedMedia,
+    activity,
+    reviewLikes,
+    reviewComments,
+    ...reviewContent
+  } = review;
 
-  const mediaTitle = mediaType.mediaType === MediaType.film ? title : name;
+  const mediaTitle = relatedMedia.mediaType === MediaType.FILM ? title : name;
 
   const releaseYear =
-    mediaType.mediaType === MediaType.film
+    review.relatedMedia.mediaType === MediaType.FILM
       ? release_date.split("-")[0]
       : first_air_date.split("-")[0];
-  const watched = mediaData.userActivity.includes("watched");
+  const watched = media.userActivity.includes("WATCHED");
+
+  const dbMedia: MediaDatabase = {
+    apiId: review.relatedMedia.apiMovieDbId,
+    title: mediaTitle,
+    posterPath: media.posterPath,
+    mediaType: media.mediaType,
+  };
 
   return (
     <>
@@ -99,28 +113,24 @@ export default async function ReviewPage({
           <div className="-mt-36 grid grid-cols-4 gap-8">
             <div>
               <MovieCard
-                alt={title}
-                id={id}
-                mediaType={mediaType.mediaType}
-                rating={mediaData.rating}
-                src={mediaData.posterPath}
-                title={title}
-                userActivity={mediaData.userActivity}
+                media={dbMedia}
+                rating={media.rating}
+                userActivity={media.userActivity}
               />
             </div>
 
             <div className="col-span-3 mt-40">
-              <Link href={`/${mediaType.mediaType}/${id}`}>
+              <Link href={`/${media.mediaType}/${id}`}>
                 <h1 className=" text-4xl font-bold">{mediaTitle}</h1>
               </Link>
               <h2 className="mt-2 text-3xl">({releaseYear})</h2>
 
               <div className="mt-8">
                 <ReviewBlock
-                  review={{ mediaId: media.mediaId, ...reviewContent }}
+                  review={{ mediaId: media.apiId, ...reviewContent }}
                   reviewUser={activity.user}
                   date={postedDate}
-                  media={media}
+                  media={dbMedia}
                   ownReview={ownReview}
                   watched={watched}
                   likes={reviewLikes}

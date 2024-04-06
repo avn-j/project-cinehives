@@ -21,6 +21,7 @@ import {
 import { FaEdit, FaHeart, FaRegHeart, FaTrash } from "react-icons/fa";
 import { Media, MediaReview } from "@prisma/client";
 import {
+  MediaDatabase,
   createNewMediaReview,
   deleteReview,
   updateMediaReview,
@@ -55,7 +56,7 @@ import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 
 interface ReviewBlockActionsProps {
-  media: Media;
+  media: MediaDatabase;
   review: MediaReview;
 }
 
@@ -280,7 +281,7 @@ export default function ReviewBlockActions({
                       <DialogClose asChild>
                         <Button
                           type="button"
-                          className="bg-secondary mt-6 text-stone-950"
+                          className="mt-6 bg-secondary text-stone-950"
                           disabled={loading}
                         >
                           Cancel

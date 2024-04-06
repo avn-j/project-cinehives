@@ -2,7 +2,7 @@ import Section from "@/components/global/layout/section";
 import MovieCard from "@/components/global/movie-card";
 import Navbar from "@/components/global/navbar";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
-import { buildDataForMedia } from "@/lib/movie-data-builder";
+import { _buildAppDataForMedia } from "@/lib/media-data-builder";
 import {
   Accordion,
   AccordionContent,
@@ -10,7 +10,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { fetchTVDetailsById } from "@/lib/moviedb-actions";
-import { Media, MediaType } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
@@ -20,11 +19,11 @@ import {
   getAllInteractionsForMedia,
   getRecentReviewsForMedia,
   getUserReviewForMedia,
+  MediaDatabase,
 } from "@/lib/db-actions";
 import { FaEye, FaHeart, FaList } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import ReviewButton from "@/components/global/buttons/review-dialog";
 import ReviewBlock from "@/components/global/review-block";
 import { DateTime } from "luxon";
 import CastCarousel from "@/components/global/cast-carousel";
@@ -48,8 +47,8 @@ export default async function TVPage({
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
 
-  const result = await fetchTVDetailsById(params.mediaId);
-  if (result.success === false) notFound();
+  const _apiResult = await fetchTVDetailsById(params.mediaId);
+  if (_apiResult.success === false) notFound();
 
   const {
     original_name,
@@ -67,19 +66,27 @@ export default async function TVPage({
     backdrop_path,
     tagline,
     seasons,
-  } = result;
+  } = _apiResult;
 
-  const mediaData = await buildDataForMedia(result);
-  const rating = await getAverageRatingForMedia(id);
-  const userReview = await getUserReviewForMedia(id);
-  const recentReviews = await getRecentReviewsForMedia(id);
-  const interactions = await getAllInteractionsForMedia(id);
-  const watchedCount = interactions?._count.mediaWatched || 0;
-  const likeCount = interactions?._count.mediaLike || 0;
-  const watchlistCount = interactions?._count.mediaWatchlist || 0;
-  const cast = result.aggregate_credits.cast;
-  const crew: any[] = result.aggregate_credits.crew;
-  const watched = mediaData.userActivity.includes("watched");
+  const media = await _buildAppDataForMedia(_apiResult);
+
+  const dbMedia: MediaDatabase = {
+    apiId: media.apiId,
+    mediaType: media.mediaType,
+    posterPath: media.posterPath,
+    title: media.title,
+  };
+
+  const rating = await getAverageRatingForMedia(dbMedia);
+  const userReview = await getUserReviewForMedia(dbMedia);
+  const recentReviews = await getRecentReviewsForMedia(dbMedia);
+  const interactions = await getAllInteractionsForMedia(dbMedia);
+  const watchedCount = interactions?._count.mediaWatches || 0;
+  const likeCount = interactions?._count.mediaLikes || 0;
+  const watchlistCount = interactions?._count.mediaOnWatchlists || 0;
+  const cast = _apiResult.aggregate_credits.cast;
+  const crew: any[] = _apiResult.aggregate_credits.crew;
+  const watched = media.userActivity.includes("WATCHED");
 
   const castByCharacters = cast.map((member: any) => {
     const characters: string[] = [];
@@ -101,16 +108,9 @@ export default async function TVPage({
     return x;
   }, {});
 
-  const creators = result.created_by
-    ? result.created_by.map((creator: any) => creator.name)
+  const creators = _apiResult.created_by
+    ? _apiResult.created_by.map((creator: any) => creator.name)
     : [];
-
-  const mediaDbItem: Media = {
-    mediaId: mediaData.id,
-    title: mediaData.title,
-    posterPath: mediaData.posterPath,
-    mediaType: MediaType.tv,
-  };
 
   return (
     <>
@@ -128,17 +128,13 @@ export default async function TVPage({
           <div className="-mt-36 grid grid-cols-4 gap-12">
             <div className="flex flex-col">
               <MovieCard
-                alt={name}
-                id={id}
-                mediaType={MediaType.film}
-                rating={mediaData.rating}
-                src={mediaData.posterPath}
-                title={name}
-                userActivity={mediaData.userActivity}
+                media={dbMedia}
+                rating={media.rating}
+                userActivity={media.userActivity}
               />
 
               {user ? (
-                <ReviewDialog media={mediaDbItem} watched={watched}>
+                <ReviewDialog media={dbMedia} watched={watched}>
                   <Button className="mt-4 w-full text-sm text-black">
                     Write a Review
                   </Button>
@@ -273,9 +269,7 @@ export default async function TVPage({
                 <p className="mt-2 text-lg">Created by {creators.join(", ")}</p>
               )}
               <div className="mt-2 flex gap-2">
-                <p className="text-xl">
-                  {rating?._avg.rating && rating?._avg.rating}
-                </p>
+                <p className="text-xl">{rating?._avg.rating?.toFixed(2)}</p>
                 <AverageMediaRating
                   rating={rating?._avg.rating}
                   count={rating?._count.rating}
@@ -331,13 +325,14 @@ export default async function TVPage({
                 </AccordionItem>
               </Accordion>
 
-              {user && userReview.length !== 0 && (
+              {user && userReview?.length !== 0 && (
                 <div className="mt-16">
                   <h2 className="text-xl">Your Reviews</h2>
                   <Separator className="my-2 bg-stone-50" />
                   <div className="flex flex-col gap-2">
-                    {userReview.map((review, index) => {
-                      const { media, activity, ...reviewContent } = review;
+                    {userReview?.map((review, index) => {
+                      const { relatedMedia, activity, ...reviewContent } =
+                        review;
                       const postedDate = DateTime.fromJSDate(
                         review.activity.createdAt,
                       ).toFormat("DD");
@@ -348,11 +343,11 @@ export default async function TVPage({
 
                       return (
                         <ReviewBlock
-                          review={{ mediaId: media.mediaId, ...reviewContent }}
+                          review={{ mediaId: media.apiId, ...reviewContent }}
                           reviewUser={activity.user}
                           date={postedDate}
                           key={index}
-                          media={media}
+                          media={dbMedia}
                           watched={watched}
                           likes={reviewContent.reviewLikes}
                           hasLiked={hasLiked}
@@ -374,8 +369,8 @@ export default async function TVPage({
 
               <Separator className="my-2 bg-stone-50" />
               <div className="flex flex-col gap-2">
-                {recentReviews.map((review, index) => {
-                  const { media, activity, ...reviewContent } = review;
+                {recentReviews?.map((review, index) => {
+                  const { relatedMedia, activity, ...reviewContent } = review;
                   const postedDate = DateTime.fromJSDate(
                     review.activity.createdAt,
                   ).toFormat("DD");
@@ -388,11 +383,11 @@ export default async function TVPage({
 
                   return (
                     <ReviewBlock
-                      review={{ mediaId: media.mediaId, ...reviewContent }}
+                      review={{ mediaId: media.apiId, ...reviewContent }}
                       reviewUser={activity.user}
                       date={postedDate}
                       key={index}
-                      media={media}
+                      media={dbMedia}
                       watched={watched}
                       likes={reviewContent.reviewLikes}
                       hasLiked={hasLiked}
@@ -400,7 +395,7 @@ export default async function TVPage({
                     />
                   );
                 })}
-                {recentReviews.length === 0 && (
+                {recentReviews?.length === 0 && (
                   <p className="mt-8 text-stone-400">
                     There are no reviews yet for {name}.
                   </p>

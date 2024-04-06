@@ -4,9 +4,10 @@ import Navbar from "@/components/global/navbar";
 import InitialLoad from "@/components/infinite-loading-media/initial-load";
 import { Separator } from "@/components/ui/separator";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
-import { fetchRecentFilmActivityRating } from "@/lib/db-actions";
-import { buildDataForMedias } from "@/lib/movie-data-builder";
+import { MediaDatabase, fetchRecentFilmActivityRating } from "@/lib/db-actions";
+import { _buildAppDataForMedias } from "@/lib/media-data-builder";
 import { fetchTrendingMovieData } from "@/lib/moviedb-actions";
+import { MediaDataWithUserActivity } from "@/lib/types";
 import { MediaType } from "@prisma/client";
 import { redirect } from "next/navigation";
 
@@ -15,9 +16,9 @@ export default async function FilmsPage() {
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
 
-  const popularMovieData = await fetchTrendingMovieData(1);
-  const initialPopularMovieData = await buildDataForMedias(
-    popularMovieData.results,
+  const _apiPopularMovieData = await fetchTrendingMovieData(1);
+  const initialPopularMovieData = await _buildAppDataForMedias(
+    _apiPopularMovieData.results,
   );
 
   const recentFilmActivity = await fetchRecentFilmActivityRating();
@@ -31,19 +32,24 @@ export default async function FilmsPage() {
             <h2 className="text-3xl">Recent Film Activity</h2>
             <Separator className="mb-4 mt-2 bg-stone-500" />
             <div className="grid grid-cols-5 gap-4">
-              {recentFilmActivity.map((media: any) => (
-                <MovieCard
-                  title={media.title}
-                  rating={media.rating}
-                  alt={media.title}
-                  id={media.id}
-                  src={media.poster_path}
-                  userActivity={media.userActivity}
-                  otherUserRatingActivity={media.otherUserActivity}
-                  key={media.id + "-" + media.otherUserActivity.username}
-                  mediaType={MediaType.film}
-                />
-              ))}
+              {recentFilmActivity.map((media) => {
+                const dbMedia: MediaDatabase = {
+                  apiId: media.apiId,
+                  posterPath: media.posterPath || "",
+                  title: media.title || "",
+                  mediaType: media.mediaType,
+                };
+
+                return (
+                  <MovieCard
+                    key={media.apiId + "-" + media.otherUserActivity.username}
+                    media={dbMedia}
+                    rating={media.rating}
+                    userActivity={media.userActivity}
+                    otherUserRatingActivity={media.otherUserActivity}
+                  />
+                );
+              })}
             </div>
           </Section>
           <Section>
@@ -51,7 +57,7 @@ export default async function FilmsPage() {
             <Separator className="mb-4 mt-2 bg-stone-500" />
             <InitialLoad
               initialMediaCollection={initialPopularMovieData}
-              mediaType={MediaType.film}
+              mediaType={MediaType.FILM}
             />
           </Section>
         </div>
