@@ -34,9 +34,7 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "../ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Media, MediaType } from "@prisma/client";
 import { MediaDataWithUserActivity } from "@/lib/types";
-import { clear } from "console";
 
 interface LogFormProps {
   media: any;

@@ -74,6 +74,13 @@ export default function LogDialog({ children }: LogDialogProps) {
     setDialogOpen(open);
   }
 
+  function clearDialog() {
+    setDialogOpen(false);
+    setSelected(null);
+    setMedia(null);
+    setMediaData(null);
+  }
+
   return (
     <Dialog onOpenChange={handleOpenChanged} open={dialogOpen}>
       <DialogTrigger>{children}</DialogTrigger>
@@ -87,7 +94,7 @@ export default function LogDialog({ children }: LogDialogProps) {
         {selected && media && mediaData && (
           <LogForm
             media={media}
-            setOpen={setDialogOpen}
+            clearDialog={clearDialog}
             mediaData={mediaData}
           />
         )}
