@@ -5,4 +5,5 @@ export const E = {
   WATCHLIST_DOES_NOT_EXIST: "User does not have an existing watchlist.",
   SCHEMA_PARSING_ERROR: "Failed to successfully validate user form.",
   NO_MEDIA_TYPE: "Could not decipher media type",
+  DIARY_ID_NOT_FOUND: "Could not retrieve diary ID"
 };

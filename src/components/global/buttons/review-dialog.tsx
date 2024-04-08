@@ -229,6 +229,11 @@ export function StarRating({
 
   const ratingContainerRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    if(!initialRating) return;
+    setActiveStar(initialRating);
+  }, [initialRating])
+
   function handleClear(e: MouseEvent) {
     setActiveStar(-1);
     setHoverActiveStar(-1);

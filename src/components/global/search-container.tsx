@@ -150,7 +150,7 @@ export default function SearchContainer({
                         />
                       </div>
                       <div className="col-span-11 flex flex-col justify-center">
-                        <Link href={`/${convertedMediaType}/${result.id}`}>
+                        <Link href={`/${convertedMediaType.toLowerCase()}/${result.id}`}>
                           <h2 className="text-2xl font-bold">
                             {result.name || result.title}
                           </h2>

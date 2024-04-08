@@ -40,12 +40,14 @@ interface LogFormProps {
   media: any;
   clearDialog: Function;
   mediaData: MediaDataWithUserActivity;
+  seasonsActivity?: any;
 }
 
-export default function LogForm({ media, clearDialog, mediaData }: LogFormProps) {
-  const [liked, setLiked] = useState(mediaData.userActivity.includes("like"));
+export default function LogForm({ media, clearDialog, mediaData, seasonsActivity }: LogFormProps) {
+  const [liked, setLiked] = useState(false);
   const [rating, setRating] = useState<number>(-1);
   const [loading, setLoading] = useState(false);
+  const [initialRating, setInitialRating] = useState<number>(mediaData.rating);
 
   const form = useForm<z.infer<typeof loggedSchema>>({
     resolver: zodResolver(loggedSchema),
@@ -59,14 +61,17 @@ export default function LogForm({ media, clearDialog, mediaData }: LogFormProps)
   });
 
   useEffect(() => {
-    form.setValue("rewatched", mediaData.userActivity.includes("watched"));
-  }, [mediaData, form]);
+    form.setValue("rewatched", mediaData.userActivity.includes("WATCHED"));
+    setLiked(mediaData.userActivity.includes("LIKE"));
+  }, []);
 
   async function handleSubmit(values: z.infer<typeof loggedSchema>) {
     setLoading(true);
 
-    const seasonNumber = values.season ? parseInt(values.season) : null;
-    const isSeason = seasonNumber !== mediaData.apiId;
+
+    const seasonId = values.season ? parseInt(values.season.split("-")[0]) : null;
+    const seasonNumber = values.season ? parseInt(values.season.split("-")[1]) : null;
+    const isSeason = seasonId !== mediaData.apiId;
 
     const dbMedia: MediaDatabase = {
       apiId: mediaData.apiId,
@@ -77,16 +82,16 @@ export default function LogForm({ media, clearDialog, mediaData }: LogFormProps)
 
     let response = false;
 
-    if (isSeason && seasonNumber) {
-      const seasonId = media.seasons[seasonNumber].id;
+    if (isSeason && seasonNumber && seasonId) {
       const seasonPosterPath = MOVIE_DB_IMG_PATH_PREFIX + media.seasons[seasonNumber].poster_path;
-      const seasonTitle = media.seasons[seasonNumber].name;
+      const seasonTitle = media.name + " " + media.seasons[seasonNumber].name;
 
       const dbMediaSeason: MediaDatabase = {
-        title: mediaData.title + " " + seasonTitle,
+        title: seasonTitle,
         posterPath: seasonPosterPath,
+        parentApiId: mediaData.apiId,
         apiSeasonId: seasonId,
-        apiId: mediaData.apiId,
+        apiId: seasonId,
         mediaType: mediaData.mediaType,
         season: seasonNumber,
       }
@@ -120,6 +125,21 @@ export default function LogForm({ media, clearDialog, mediaData }: LogFormProps)
     setRating(rating);
   }
 
+  function handleSeasonChange(value: string) {
+    const seasonId = value.split("-")[0];
+
+    if(!seasonsActivity[seasonId]) {
+      setLiked(false);
+      setInitialRating(-1);
+      form.setValue("rewatched", false);
+      return;
+    }
+
+    setLiked(seasonsActivity[seasonId].userActivity.includes("LIKE"));
+    setInitialRating(seasonsActivity[seasonId].rating);
+    form.setValue("rewatched", seasonsActivity[seasonId].userActivity.includes("WATCHED"))
+  }
+
   return (
     <div className="mt-4 grid grid-cols-3 gap-8">
       <Image
@@ -135,7 +155,7 @@ export default function LogForm({ media, clearDialog, mediaData }: LogFormProps)
             <p className="mb-1">Rating</p>
             <StarRating
               handleRating={handleRating}
-              initialRating={mediaData.rating}
+              initialRating={initialRating}
             />
           </div>
           <div className="flex flex-col items-center">
@@ -159,7 +179,10 @@ export default function LogForm({ media, clearDialog, mediaData }: LogFormProps)
                   <FormItem>
                     <FormLabel>Adding an entry for</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        handleSeasonChange(value);
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -183,9 +206,9 @@ export default function LogForm({ media, clearDialog, mediaData }: LogFormProps)
                             return (
                               <SelectItem
                                 key={season.id}
-                                value={index.toString()}
+                                value={season.id + "-" + index.toString()}
                               >
-                                {season.name}
+                                {index}: {season.name}
                               </SelectItem>
                             );
                           })}

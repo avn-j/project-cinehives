@@ -23,6 +23,7 @@ import { ChevronsUpDown } from "lucide-react";
 import SearchCommand from "../ui/search-command";
 import LogForm from "./log-form";
 import { _buildAppDataForMedia } from "@/lib/media-data-builder";
+import { getActivityForAllSeasons } from "@/lib/db-actions";
 
 const POPOVER_WIDTH = "w-[600px]";
 
@@ -39,6 +40,7 @@ export default function LogDialog({ children }: LogDialogProps) {
   const [media, setMedia] = useState<any | null>(null);
   const [mediaData, setMediaData] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [seasonsData, setSeasonsData] = useState(null)
 
   useEffect(() => {
     if (!selected) return;
@@ -52,6 +54,7 @@ export default function LogDialog({ children }: LogDialogProps) {
 
     if (selected.mediaType === "tv") {
       fetchTVDetailsById(selected.mediaId.toString()).then((result) => {
+        getActivityForAllSeasons(result.id, result.seasons).then((result) => {setSeasonsData(result)});
         setMedia(result);
         _buildAppDataForMedia(result).then((data) => setMediaData(data));
       });
@@ -96,6 +99,7 @@ export default function LogDialog({ children }: LogDialogProps) {
             media={media}
             clearDialog={clearDialog}
             mediaData={mediaData}
+            seasonsActivity={seasonsData}
           />
         )}
         {!selected && (

@@ -171,7 +171,7 @@ export async function _buildAppDataForMedia(_apiData: any) {
     userActivity.push(result.activityType);
   });
 
-  const returned = {
+  return {
     apiId: _apiData.id,
     title: _apiData.title || _apiData.name,
     posterPath: MOVIE_DB_IMG_PATH_PREFIX + _apiData.poster_path,
@@ -179,6 +179,4 @@ export async function _buildAppDataForMedia(_apiData: any) {
     userActivity: userActivity || [],
     mediaType: convertedMediaType,
   };
-
-  return returned;
 }

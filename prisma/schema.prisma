@@ -251,6 +251,7 @@ model TVMedia {
     mediaId      Int    @id @map("media_id")
     title        String
     posterPath   String @map("poster_path")
+    parentApiId  Int?   @map("parent_api_id")
     apiSeasonId  Int?   @map("api_season_id")
     apiEpisodeId Int?   @map("api_episode_id")
     season       Int?

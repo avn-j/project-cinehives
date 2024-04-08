@@ -15,6 +15,7 @@ export interface DatabaseFilmMedia {
   posterPath: string;
   mediaType: MediaType;
   apiId: number;
+  parentApiId?: never;
   season?: never;
   episode?: never;
   apiSeasonId?: never;
@@ -26,6 +27,7 @@ export interface DatabaseTVMedia {
   posterPath: string;
   apiId: number;
   mediaType: MediaType;
+  parentApiId?: number;
   episode?: number;
   apiSeasonId?: number;
   apiEpisodeId?: number;
@@ -118,6 +120,7 @@ export async function createNewMedia(media: MediaDatabase) {
                 apiSeasonId: media.apiSeasonId,
                 episode: media.episode,
                 apiEpisodeId: media.apiEpisodeId,
+                parentApiId: media.parentApiId,
               },
             },
           }),
@@ -823,7 +826,7 @@ export async function deleteReview(activityId: string) {
 
 export async function createNewReviewLike(reviewId: string) {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const result = prisma.userActivity.create({
     data: {
@@ -843,7 +846,7 @@ export async function createNewReviewLike(reviewId: string) {
 
 export async function deleteReviewLike(reviewId: string) {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const result = await prisma.userActivity.deleteMany({
     where: {
@@ -955,10 +958,10 @@ export async function createNewReviewComment(
   reviewId: string,
 ) {
   const parseResult = commentSchema.safeParse(values);
-  if (!parseResult.success) return false;
+  if (!parseResult.success) throw Error(E.SCHEMA_PARSING_ERROR);
 
   const user = await getUser();
-  if (!user) return false;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const result = await prisma.userActivity.create({
     data: {
@@ -991,7 +994,7 @@ export async function deleteReviewComment(commentId: string) {
 
 export async function createNewReviewCommentLike(commentId: string) {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const result = prisma.userActivity.create({
     data: {
@@ -1011,7 +1014,7 @@ export async function createNewReviewCommentLike(commentId: string) {
 
 export async function deleteReviewCommentLike(commentId: string) {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);;
 
   const result = await prisma.userActivity.deleteMany({
     where: {
@@ -1103,13 +1106,13 @@ export async function createNewDiaryEntry(
   liked: boolean,
 ) {
   const parseResult = loggedSchema.safeParse(values);
-  if (!parseResult.success) return false;
+  if (!parseResult.success) throw Error(E.SCHEMA_PARSING_ERROR);
 
   const user = await getUser();
   const diaryId = await getUserDiaryId();
 
-  if (!diaryId) return false;
-  if (!user) return false;
+  if (!diaryId) throw Error(E.DIARY_ID_NOT_FOUND);
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const mediaId = await createNewMedia(media);
 
@@ -1172,7 +1175,7 @@ export async function createNewUserDiary(userId: string) {
 
 export async function getUserDiaryId() {
   const user = await getUser();
-  if (!user) return null;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const diary = await prisma.userDiary.findUnique({
     where: {
@@ -1182,4 +1185,55 @@ export async function getUserDiaryId() {
 
   if (!diary) return null;
   return diary.id;
+}
+
+export async function getActivityForAllSeasons(parentApiId: number, seasons: any[]) {
+
+  const user = await getUser();
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
+
+
+  if(seasons.length === 1) return null;
+  const seasonIds = seasons.map(season => season.id);
+  const apiIdsAndMediaType: ApiIdWithMediaType[] = seasonIds.map((seasonId) => {
+    return {
+      apiId: seasonId,
+      mediaType: "TV",
+    }
+  })
+
+  const mediaIds = await getCinehivesMediaIdsByApiIds(apiIdsAndMediaType);
+
+  const activityResponse = await prisma.mediaActivity.findMany({
+    include: {
+      mediaLike: true,
+      mediaWatched: true,
+      mediaRating: true,
+      media: true,
+    },
+    where: {
+      mediaId: {
+        in: mediaIds,
+      }
+    }
+  })
+
+  const activityAndRating: any = {};
+
+  activityResponse.forEach((activity) => {
+    if (!activityAndRating[activity.media.apiMovieDbId]) {
+      activityAndRating[activity.media.apiMovieDbId] = {
+        userActivity: [],
+        rating: -1,
+      };
+    }
+    activityAndRating[activity.media.apiMovieDbId].userActivity.push(activity.activityType);
+
+    if (activity.mediaRating) {
+      activityAndRating[activity.media.apiMovieDbId].rating = activity.mediaRating.rating;
+    }
+  })
+
+  return activityAndRating;
+
 }
