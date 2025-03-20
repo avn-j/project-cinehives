@@ -7,12 +7,9 @@ html {
     letter-spacing: 0px;
 }
 
-.monsterrat-test {
+.font-body {
     font-family: var(--font-monsterrat);
-}
-
-.monsterrat-test-bold {
-    font-family: var(--font-monsterrat);
+    letter-spacing: 0px;
 }
 
 body {

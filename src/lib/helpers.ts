@@ -1,5 +1,9 @@
 export function _getConvertedMediaType(_apiMedia: any) {
 
+  if(_apiMedia.mediaType) return _apiMedia.mediaType
+
+  if(!_apiMedia.genre_ids && !_apiMedia.genres) return;
+
   const genreIds = _apiMedia.genre_ids || _apiMedia.genres.map((genre: any) => genre.id);
 
   if (_apiMedia.media_type && _apiMedia.media_type === "movie") return "FILM";

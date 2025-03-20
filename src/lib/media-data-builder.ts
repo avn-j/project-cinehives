@@ -9,12 +9,13 @@ import {
   getCinehivesMediaIdByApiId,
   getCinehivesMediaIdsByApiIds,
 } from "./db-actions";
-import { MediaType } from "@prisma/client";
+import { Media, MediaType } from "@prisma/client";
 
 export async function _buildAppDataForMedias(_apiData: any[]) {
   const user = await getUser();
 
   if (!user) {
+
     const medias = _apiData.map((media) => {
       const convertedMediaType: MediaType = _getConvertedMediaType(media);
 
@@ -179,4 +180,90 @@ export async function _buildAppDataForMedia(_apiData: any) {
     userActivity: userActivity || [],
     mediaType: convertedMediaType,
   };
+}
+
+export async function _buildAppDataFromDbActivities(activities: any) {
+  
+  const user = await getUser();
+
+  if (!user) {
+
+    const medias = activities.map((activity: any) => {
+      return {
+        apiId: activity.media.apiMovieDbId,
+        title: activity.media.title,
+        posterPath: activity.media.posterPath,
+        rating: -1,
+        userActivity: [],
+        mediaType: activity.media.mediaType,
+      };
+    });
+
+    return medias;
+  }
+
+  const mediaUserActivity: any = {};
+  const mediaRatings: any = {};
+
+  const cinehivesIds = activities.map((activity: any) => activity.media.id);
+
+  const dbActivityResults = await prisma.mediaActivity.findMany({
+    where: {
+      userId: user.id,
+      mediaId: {
+        in: cinehivesIds,
+      },
+    },
+    include: {
+      media: true,
+    },
+  });
+
+  const dbRatingResults = await prisma.mediaActivity.findMany({
+    include: {
+      mediaRating: true,
+      media: true,
+    },
+    where: {
+      userId: user.id,
+      activityType: "RATING",
+      mediaId: {
+        in: cinehivesIds,
+      },
+      mediaRating: {
+        mediaId: {
+          in: cinehivesIds,
+        },
+      },
+    },
+  });
+
+  // Iterate over database results and builds user activity
+  dbActivityResults.forEach((result) => {
+    // If the mediaId doesn't exist as a key, add it to the mediaUserActivity object
+    // and initialize an empty array
+    if (!mediaUserActivity[result.media.apiMovieDbId]) {
+      mediaUserActivity[result.media.apiMovieDbId] = [];
+    }
+
+    // Push particular activity type, eg. rating, like, review to that specific mediaId in object.
+    mediaUserActivity[result.media.apiMovieDbId].push(result.activityType);
+  });
+
+  dbRatingResults.forEach((rating) => {
+    mediaRatings[rating.media.apiMovieDbId] = rating.mediaRating?.rating;
+  });
+
+  const appMediaData = activities.map((activity: any) => {
+    return {
+      apiId: activity.media.apiMovieDbId,
+      title: activity.media.title,
+      posterPath: activity.media.posterPath,
+      rating: mediaRatings[activity.media.apiMovieDbId] || -1,
+      userActivity: mediaUserActivity[activity.media.apiMovieDbId] || [],
+      mediaType: activity.media.mediaType,
+    };
+  });
+
+  return appMediaData;
 }

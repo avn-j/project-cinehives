@@ -48,10 +48,15 @@ model Profile {
     profilePictureURL String       @default("") @map("profile_picture_url")
     profileStage      ProfileStage @default(ACCOUNT_DETAILS) @map("profile_stage")
 
-    mediaActivities MediaActivity[]
-    userActivities  UserActivity[]
-    watchlist       Watchlist?
-    diary           UserDiary?
+    mediaActivities     MediaActivity[]
+    userActivities      UserActivity[]
+    watchlist           Watchlist?
+    diary               UserDiary?
+    mediaRatings        MediaRating[]
+    mediaLikes          MediaLike[]
+    mediaReviews        MediaReview[]
+    mediaWatches        MediaWatched[]
+    mediaWatchlisted    MediaWatchlist[]
 
     @@unique([email, username])
     @@map("profile")
@@ -104,99 +109,107 @@ model UserReviewComment {
 }
 
 model UserCommentLike {
-    activityId     String @id @unique @map("activity_id") @db.Uuid
-    likedCommentId String @map("liked_comment_id") @db.Uuid
+    activityId      String              @id @unique @map("activity_id") @db.Uuid
+    likedCommentId  String              @map("liked_comment_id") @db.Uuid
 
-    activity     UserActivity      @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    likedComment UserReviewComment @relation(fields: [likedCommentId], references: [activityId], onDelete: Cascade)
+    activity        UserActivity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    likedComment    UserReviewComment   @relation(fields: [likedCommentId], references: [activityId], onDelete: Cascade)
 
     @@map("user_comment_like")
 }
 
 model UserReviewLike {
-    activityId    String @id @unique @map("activity_id") @db.Uuid
-    likedReviewId String @map("liked_review_id") @db.Uuid
+    activityId      String          @id @unique @map("activity_id") @db.Uuid
+    likedReviewId   String          @map("liked_review_id") @db.Uuid
 
-    activity    UserActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    likedReview MediaReview  @relation(fields: [likedReviewId], references: [activityId], onDelete: Cascade)
+    activity        UserActivity    @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    likedReview     MediaReview     @relation(fields: [likedReviewId], references: [activityId], onDelete: Cascade)
 
     @@map("user_review_like")
 }
 
 model UserDiary {
-    id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    userId String @unique @map("user_id") @db.Uuid
+    id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId          String              @unique @map("user_id") @db.Uuid
 
-    diaryEntries MediaDiaryEntry[]
-    user         Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    diaryEntries    MediaDiaryEntry[]
+    user            Profile             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@map("user_diary")
 }
 
 model MediaDiaryEntry {
-    activityId String   @id @unique @map("activity_id") @db.Uuid
-    diaryId    String   @map("diary_id") @db.Uuid
-    loggedDate DateTime @default(now()) @map("logged_date") @db.Timestamptz()
-    mediaId    Int      @map("media_id")
+    activityId      String          @id @unique @map("activity_id") @db.Uuid
+    diaryId         String          @map("diary_id") @db.Uuid
+    loggedDate      DateTime        @default(now()) @map("logged_date") @db.Timestamptz()
+    mediaId         Int             @map("media_id")
 
-    relatedMedia Media         @relation(fields: [mediaId], references: [id])
-    diary        UserDiary     @relation(fields: [diaryId], references: [id], onDelete: Cascade)
-    activity     MediaActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    relatedMedia    Media           @relation(fields: [mediaId], references: [id])
+    diary           UserDiary       @relation(fields: [diaryId], references: [id], onDelete: Cascade)
+    activity        MediaActivity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
     @@map("media_diary_entry")
 }
 
 model MediaLike {
-    activityId String @id @unique @map("activity_id") @db.Uuid
-    mediaId    Int    @map("media_id")
-
-    relatedMedia Media         @relation(fields: [mediaId], references: [id])
-    activity     MediaActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    activityId      String          @id @unique @map("activity_id") @db.Uuid
+    mediaId         Int             @map("media_id")
+    userId          String          @map("user_id") @db.Uuid()
+    
+    user            Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    relatedMedia    Media           @relation(fields: [mediaId], references: [id])
+    activity        MediaActivity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
     @@map("media_like")
 }
 
 model MediaRating {
-    activityId String @id @unique @map("activity_id") @db.Uuid
-    rating     Float
-    mediaId    Int    @map("media_id")
+    activityId      String          @id @unique @map("activity_id") @db.Uuid
+    rating          Float
+    userId          String          @map("user_id") @db.Uuid()
+    mediaId         Int             @map("media_id")
 
-    relatedMedia Media         @relation(fields: [mediaId], references: [id])
-    activity     MediaActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    relatedMedia    Media           @relation(fields: [mediaId], references: [id])
+    activity        MediaActivity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    user            Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@map("media_rating")
 }
 
 model MediaWatched {
-    activityId String @id @unique @map("activity_id") @db.Uuid
-    mediaId    Int    @map("media_id")
+    activityId      String          @id @unique @map("activity_id") @db.Uuid
+    mediaId         Int             @map("media_id")
+    userId          String          @map("user_id") @db.Uuid()
 
-    relatedMedia Media         @relation(fields: [mediaId], references: [id])
-    activity     MediaActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    relatedMedia    Media           @relation(fields: [mediaId], references: [id])
+    activity        MediaActivity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    user            Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@map("media_watched")
 }
 
 model MediaReview {
-    activityId String  @id @unique @map("activity_id") @db.Uuid
-    review     String
-    rating     Float?
-    liked      Boolean @default(false)
-    spoiler    Boolean @default(false)
-    rewatched  Boolean @default(false)
-    mediaId    Int     @map("media_id")
+    activityId      String      @id @unique @map("activity_id") @db.Uuid
+    review          String
+    rating          Float?
+    liked           Boolean     @default(false)
+    spoiler         Boolean     @default(false)
+    rewatched       Boolean     @default(false)
+    mediaId         Int         @map("media_id")
+    userId          String      @map("user_id") @db.Uuid()
 
-    relatedMedia   Media               @relation(fields: [mediaId], references: [id])
-    activity       MediaActivity       @relation(fields: [activityId], references: [id], onDelete: Cascade)
-    reviewLikes    UserReviewLike[]
-    reviewComments UserReviewComment[]
+    relatedMedia    Media               @relation(fields: [mediaId], references: [id])
+    activity        MediaActivity       @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    user            Profile             @relation(fields: [userId], references: [id], onDelete: Cascade)
+    reviewLikes     UserReviewLike[]
+    reviewComments  UserReviewComment[]
 
     @@map("media_review")
 }
 
 model Watchlist {
-    id     String @id @default(uuid()) @db.Uuid
-    userId String @unique @map("user_id") @db.Uuid
+    id              String          @id @default(uuid()) @db.Uuid
+    userId          String          @unique @map("user_id") @db.Uuid
 
     user             Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
     mediaOnWatchlist MediaWatchlist[]
@@ -205,13 +218,15 @@ model Watchlist {
 }
 
 model MediaWatchlist {
-    activityId  String @id @map("activity_id") @db.Uuid
-    watchlistId String @map("watchlist_id") @db.Uuid
-    mediaId     Int    @map("media_id")
+    activityId      String          @id @map("activity_id") @db.Uuid
+    watchlistId     String          @map("watchlist_id") @db.Uuid
+    mediaId         Int             @map("media_id")
+    userId          String          @map("user_id") @db.Uuid()
 
-    relatedMedia Media         @relation(fields: [mediaId], references: [id])
-    watchlist    Watchlist?    @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
-    activity     MediaActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    relatedMedia    Media           @relation(fields: [mediaId], references: [id])
+    user            Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    watchlist       Watchlist?      @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+    activity        MediaActivity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
     @@map("media_watchlisted")
 }

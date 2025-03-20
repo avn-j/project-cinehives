@@ -9,6 +9,7 @@ import { commentSchema, loggedSchema, reviewSchema } from "@/schemas/schemas";
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import { E } from "./errors";
+import { profile } from "console";
 
 export interface DatabaseFilmMedia {
   title: string;
@@ -147,6 +148,7 @@ export async function createNewRating(rating: number, media: MediaDatabase) {
         create: {
           mediaId: mediaId,
           rating: rating,
+          userId: user.id,
         },
       },
     },
@@ -197,6 +199,7 @@ export async function createNewWatched(media: MediaDatabase) {
       mediaWatched: {
         create: {
           mediaId: mediaId,
+          userId: user.id,
         },
       },
     },
@@ -254,6 +257,7 @@ export async function addMediaToUserWatchlist(media: MediaDatabase) {
         create: {
           mediaId: mediaId,
           watchlistId: watchlistId,
+          userId: user.id,
         },
       },
     },
@@ -300,6 +304,7 @@ export async function createNewMediaLike(media: MediaDatabase) {
       mediaLike: {
         create: {
           mediaId: mediaId,
+          userId: user.id,
         },
       },
     },
@@ -609,6 +614,7 @@ export async function createNewMediaReview(
           liked,
           spoiler: values.spoilers,
           rewatched: values.rewatched,
+          userId: user.id,
         },
       },
     },
@@ -1155,6 +1161,7 @@ export async function createNewDiaryEntry(
             liked,
             spoiler: values.spoilers,
             rewatched: values.rewatched,
+            userId: user.id,
           },
         },
       },
@@ -1236,4 +1243,218 @@ export async function getActivityForAllSeasons(parentApiId: number, seasons: any
 
   return activityAndRating;
 
+}
+
+export async function getProfileByUsername(username: string) {
+
+  const profileResult = await prisma.profile.findUnique({
+    where: {
+      username: username,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      username: true,
+      country: true,
+      profilePictureURL: true,
+    }
+  })
+
+  if(!profileResult) return null;
+
+  const recentRatingActivity = await prisma.mediaActivity.findMany({
+    orderBy: {
+      createdAt: "desc"
+    }, 
+    where: {
+      userId: profileResult?.id,
+      activityType: "RATING",
+    },
+    include: {
+      media: true,
+      mediaRating: true,
+    },
+    take: 4,
+  })
+
+  const userActivities = await prisma.profile.findUnique({
+    where: {
+      id: profileResult.id,
+    },
+    select: {
+      mediaLikes: {
+        orderBy: {
+          activity: {
+            createdAt: "desc"
+          },
+        },
+        select: {
+          relatedMedia: true,
+        }
+      },
+      mediaRatings: {
+        orderBy: {
+          activity: {
+            createdAt: "desc"
+          },
+        },
+      },
+      mediaReviews: {
+        orderBy: {
+          activity: {
+            createdAt: "desc"
+          },
+        },
+        select: {
+          activityId: true,
+          rating: true,
+          spoiler: true,
+          rewatched: true,
+          review: true,
+          relatedMedia: true,
+        }
+      },
+      mediaWatchlisted: {
+        orderBy: {
+          activity: {
+            createdAt: "desc"
+          },
+        },
+        select: {
+          relatedMedia: true,
+        }
+      },
+      diary: {
+        select: {
+          diaryEntries: {
+            orderBy: {
+              loggedDate: "desc",
+            },
+            select: {
+              loggedDate: true,
+              relatedMedia: {
+                select: {
+                  apiMovieDbId: true,
+                  title: true,
+                  mediaType: true,
+                  relatedTVMedia: true,
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  const mediaWatched = await prisma.mediaWatched.findMany({
+    where: {
+      userId: profileResult.id,
+    },
+    include: {
+      relatedMedia: true,
+    }
+  })
+
+  let tvShowCount = 0;
+  let filmCount = 0;
+  let animeCount = 0;
+
+  mediaWatched.forEach((media) => {
+    switch(media.relatedMedia.mediaType) {
+      case "ANIME":
+        animeCount++;
+        break;
+      case "FILM":
+        filmCount++;
+        break;
+      case "TV": 
+        tvShowCount++;
+        break;
+    }
+  });
+
+  const ratingsArr = userActivities?.mediaRatings.map(mediaRating => mediaRating.rating);
+
+  console.log(userActivities?.mediaReviews);
+
+
+  const count: any = {};
+ 
+  if(ratingsArr) {
+    for (let ele of ratingsArr) {
+        if (count[ele]) {
+            count[ele] += 1;
+        } else {
+            count[ele] = 1;
+        }
+    }
+  }
+
+  const ratingsData = [
+    {
+      name: "0.5",
+      count: count["0.5"] || 0
+    },
+    {
+      name: "1",
+      count: count["1"] || 0
+    },
+    {
+      name: "1.5",
+      count: count["1.5"] || 0
+    },
+    {
+      name: "2",
+      count: count["2"] || 0
+    },
+    {
+      name: "2.5",
+      count: count["2.5"] || 0
+    },
+    {
+      name: "3",
+      count: count["3"] || 0
+    },
+    {
+      name: "3.5",
+      count: count["3.5"] || 0
+    },
+    {
+      name: "4",
+      count: count["4"] || 0
+    },
+    {
+      name: "4.5",
+      count: count["4.5"] || 0
+    },
+    {
+      name: "5",
+      count: count["5"] || 0
+    },
+  ]
+
+  const recentlyWatchlisted = userActivities?.mediaWatchlisted.slice(0, 5);
+  const recentlyLiked = userActivities?.mediaLikes.slice(0, 5);
+  const recentDiary = userActivities?.diary?.diaryEntries.slice(0, 5);
+  const recentReviews = userActivities?.mediaReviews.slice(0, 2);
+
+  return {
+    profile: profileResult,
+    recentRatingActivity: recentRatingActivity,
+    mediaLikesCount: userActivities?.mediaLikes.length,
+    mediaRatingsCount: userActivities?.mediaRatings.length,
+    mediaReviewsCount: userActivities?.mediaReviews.length,
+    mediaWatchlistCount: userActivities?.mediaWatchlisted.length,
+    mediaDiaryCount: userActivities?.diary?.diaryEntries.length,
+    animesWatched: animeCount,
+    filmsWatched: filmCount,
+    tvShowsWatched: tvShowCount,
+    recentlyWatchlisted: recentlyWatchlisted,
+    recentlyLiked: recentlyLiked,
+    recentDiary: recentDiary,
+    ratingsData: ratingsData,
+    recentReviews: recentReviews
+  };
 }
