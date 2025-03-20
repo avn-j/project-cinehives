@@ -8,12 +8,7 @@ import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
 import AverageMediaRating from "@/components/global/average-media-rating";
-import {
-  getAverageRatingForMedia,
-  getAllInteractionsForMedia,
-  getAllReviewsForMedia,
-  MediaDatabase,
-} from "@/lib/db-actions";
+import { getAverageRatingForMedia, getAllInteractionsForMedia, getAllReviewsForMedia, MediaDatabase } from "@/lib/db-actions";
 import { FaEye, FaHeart, FaList } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -21,19 +16,10 @@ import ReviewBlock from "@/components/global/review-block";
 import { DateTime } from "luxon";
 import { Button } from "@/components/ui/button";
 import ReviewDialog from "@/components/global/buttons/review-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 
-export default async function TVReviewsPage({
-  params,
-}: {
-  params: { mediaId: string };
-}) {
+export default async function TVReviewsPage({ params }: { params: { mediaId: string } }) {
   const user = await getUser();
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
@@ -41,18 +27,8 @@ export default async function TVReviewsPage({
   const _apiResult = await fetchTVDetailsById(params.mediaId);
   if (_apiResult.success === false) notFound();
 
-  const {
-    original_name,
-    id,
-    genres,
-    name,
-    number_of_episodes,
-    number_of_seasons,
-    first_air_date,
-    next_episode_to_air,
-    status,
-    backdrop_path,
-  } = _apiResult;
+  const { original_name, id, genres, name, number_of_episodes, number_of_seasons, first_air_date, next_episode_to_air, status, backdrop_path } =
+    _apiResult;
 
   const media = await _buildAppDataForMedia(_apiResult);
 
@@ -71,9 +47,7 @@ export default async function TVReviewsPage({
   const watchlistCount = interactions?._count.mediaOnWatchlists || 0;
   const watched = media.userActivity.includes("WATCHED");
 
-  const creators = _apiResult.created_by
-    ? _apiResult.created_by.map((creator: any) => creator.name)
-    : [];
+  const creators = _apiResult.created_by ? _apiResult.created_by.map((creator: any) => creator.name) : [];
 
   return (
     <>
@@ -81,26 +55,15 @@ export default async function TVReviewsPage({
 
       <main>
         <div className="relative min-h-[600px]">
-          <Image
-            src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path}
-            layout="fill"
-            className="-z-10 object-cover object-top"
-            alt="Banner"
-          />
+          <Image src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path} layout="fill" className="-z-10 object-cover object-top" alt="Banner" />
         </div>
         <Section>
           <div className="-mt-36 grid grid-cols-4 gap-12">
             <div className="flex flex-col">
-              <MovieCard
-                media={dbMedia}
-                rating={media.rating}
-                userActivity={media.userActivity}
-              />
+              <MovieCard media={dbMedia} rating={media.rating} userActivity={media.userActivity} />
 
               <ReviewDialog media={dbMedia} watched={watched}>
-                <Button className="mt-4 w-full text-sm text-black">
-                  Write a Review
-                </Button>
+                <Button className="mt-4 w-full text-sm text-black">Write a Review</Button>
               </ReviewDialog>
 
               <div className="mt-10 flex gap-4">
@@ -114,10 +77,7 @@ export default async function TVReviewsPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {watchedCount === 0 ? "No" : watchedCount}{" "}
-                        {watchedCount > 1 || watchedCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {watchedCount === 0 ? "No" : watchedCount} {watchedCount > 1 || watchedCount === 0 ? "users have " : "user has "}
                         watched this
                       </p>
                     </TooltipContent>
@@ -134,10 +94,7 @@ export default async function TVReviewsPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {likeCount === 0 ? "No" : likeCount}{" "}
-                        {likeCount > 1 || likeCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {likeCount === 0 ? "No" : likeCount} {likeCount > 1 || likeCount === 0 ? "users have " : "user has "}
                         liked this
                       </p>
                     </TooltipContent>
@@ -154,10 +111,7 @@ export default async function TVReviewsPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {watchlistCount === 0 ? "No" : watchlistCount}{" "}
-                        {watchlistCount > 1 || watchlistCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {watchlistCount === 0 ? "No" : watchlistCount} {watchlistCount > 1 || watchlistCount === 0 ? "users have " : "user has "}
                         this on their watchlist
                       </p>
                     </TooltipContent>
@@ -181,20 +135,14 @@ export default async function TVReviewsPage({
               {first_air_date && (
                 <div className="mt-8">
                   <h3 className="font-semibold">Premiere</h3>
-                  <p className="mt-1 text-sm">
-                    {DateTime.fromISO(first_air_date).toFormat("DD")}
-                  </p>
+                  <p className="mt-1 text-sm">{DateTime.fromISO(first_air_date).toFormat("DD")}</p>
                 </div>
               )}
 
               {next_episode_to_air && (
                 <div className="mt-8">
                   <h3 className="font-semibold">Next Episode Airing</h3>
-                  <p className="mt-1 text-sm">
-                    {DateTime.fromISO(next_episode_to_air.air_date).toFormat(
-                      "DD",
-                    )}
-                  </p>
+                  <p className="mt-1 text-sm">{DateTime.fromISO(next_episode_to_air.air_date).toFormat("DD")}</p>
                 </div>
               )}
 
@@ -208,9 +156,7 @@ export default async function TVReviewsPage({
               <div className="mt-8">
                 <h3 className="font-semibold">Seasons & Episodes</h3>
                 <p className="mt-1 text-sm">
-                  {number_of_seasons}{" "}
-                  {number_of_seasons > 1 ? "seasons" : "season"},{" "}
-                  {number_of_episodes} episodes
+                  {number_of_seasons} {number_of_seasons > 1 ? "seasons" : "season"}, {number_of_episodes} episodes
                 </p>
               </div>
             </div>
@@ -220,20 +166,11 @@ export default async function TVReviewsPage({
                   {name} {original_name !== name ? `(${original_name})` : ""}
                 </h1>
               </Link>
-              <h2 className="mt-2 text-3xl">
-                ({first_air_date.split("-")[0]})
-              </h2>
-              {creators.length > 0 && (
-                <p className="mt-2 text-lg">Created by {creators.join(", ")}</p>
-              )}
+              <h2 className="mt-2 text-3xl">({first_air_date.split("-")[0]})</h2>
+              {creators.length > 0 && <p className="mt-2 text-lg">Created by {creators.join(", ")}</p>}
               <div className="mt-2 flex gap-2">
-                <p className="text-xl">
-                  {rating?._avg.rating && rating?._avg.rating}
-                </p>
-                <AverageMediaRating
-                  rating={rating?._avg.rating}
-                  count={rating?._count.rating}
-                />
+                <p className="text-xl">{rating?._avg.rating && rating?._avg.rating}</p>
+                <AverageMediaRating rating={rating?._avg.rating} count={rating?._count.rating} />
               </div>
 
               <div className="mt-16 flex items-center justify-between">
@@ -245,9 +182,7 @@ export default async function TVReviewsPage({
               <Separator className="my-2 bg-stone-50" />
               <div className="flex flex-col gap-2">
                 {reviews?.map((review, index) => {
-                  const postedDate = DateTime.fromJSDate(
-                    review.activity.createdAt,
-                  ).toFormat("DD");
+                  const postedDate = DateTime.fromJSDate(review.activity.createdAt).toFormat("DD");
 
                   let hasLiked = false;
 
@@ -260,7 +195,7 @@ export default async function TVReviewsPage({
 
                   return (
                     <ReviewBlock
-                      review={{ mediaId: media.apiId, ...reviewContent }}
+                      review={{ mediaId: media.apiId, ...reviewContent, userId: activity.user.id }}
                       reviewUser={activity.user}
                       date={postedDate}
                       key={index}
@@ -272,11 +207,7 @@ export default async function TVReviewsPage({
                     />
                   );
                 })}
-                {reviews?.length === 0 && (
-                  <p className="mt-8 text-stone-400">
-                    There are no reviews yet for {name}.
-                  </p>
-                )}
+                {reviews?.length === 0 && <p className="mt-8 text-stone-400">There are no reviews yet for {name}.</p>}
               </div>
             </div>
           </div>

@@ -9,21 +9,14 @@ import { getUser, getUserProfile } from "@/lib/authentication-functions";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
 import { MediaDatabase, getReviewById } from "@/lib/db-actions";
 import { _buildAppDataForMedia } from "@/lib/media-data-builder";
-import {
-  fetchMovieDetailsById,
-  fetchTVDetailsById,
-} from "@/lib/moviedb-actions";
+import { fetchMovieDetailsById, fetchTVDetailsById } from "@/lib/moviedb-actions";
 import { MediaType } from "@prisma/client";
 import { DateTime } from "luxon";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-export default async function ReviewPage({
-  params,
-}: {
-  params: { reviewId: string };
-}) {
+export default async function ReviewPage({ params }: { params: { reviewId: string } }) {
   const user = await getUser();
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
@@ -38,30 +31,16 @@ export default async function ReviewPage({
   let _apiResult;
 
   if (review.relatedMedia.mediaType == MediaType.FILM) {
-    _apiResult = await fetchMovieDetailsById(
-      review.relatedMedia.apiMovieDbId.toString(),
-    );
+    _apiResult = await fetchMovieDetailsById(review.relatedMedia.apiMovieDbId.toString());
   } else {
-    _apiResult = await fetchTVDetailsById(
-      review.relatedMedia.apiMovieDbId.toString(),
-    );
+    _apiResult = await fetchTVDetailsById(review.relatedMedia.apiMovieDbId.toString());
   }
 
   const media = await _buildAppDataForMedia(_apiResult);
 
-  const {
-    id,
-    title,
-    name,
-    first_air_date,
-    original_title,
-    release_date,
-    backdrop_path,
-  } = _apiResult;
+  const { id, title, name, first_air_date, original_title, release_date, backdrop_path } = _apiResult;
 
-  const postedDate = DateTime.fromJSDate(review.activity.createdAt).toFormat(
-    "DD",
-  );
+  const postedDate = DateTime.fromJSDate(review.activity.createdAt).toFormat("DD");
 
   let hasLiked = false;
   let ownReview = false;
@@ -73,20 +52,11 @@ export default async function ReviewPage({
     ownReview = review.activity.user.id === user.id;
   }
 
-  const {
-    relatedMedia,
-    activity,
-    reviewLikes,
-    reviewComments,
-    ...reviewContent
-  } = review;
+  const { relatedMedia, activity, reviewLikes, reviewComments, ...reviewContent } = review;
 
   const mediaTitle = relatedMedia.mediaType === MediaType.FILM ? title : name;
 
-  const releaseYear =
-    review.relatedMedia.mediaType === MediaType.FILM
-      ? release_date.split("-")[0]
-      : first_air_date.split("-")[0];
+  const releaseYear = review.relatedMedia.mediaType === MediaType.FILM ? release_date.split("-")[0] : first_air_date.split("-")[0];
   const watched = media.userActivity.includes("WATCHED");
 
   const dbMedia: MediaDatabase = {
@@ -102,21 +72,12 @@ export default async function ReviewPage({
 
       <main>
         <div className="relative min-h-[600px]">
-          <Image
-            src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path}
-            layout="fill"
-            className="-z-10 object-cover object-top"
-            alt="Banner"
-          />
+          <Image src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path} layout="fill" className="-z-10 object-cover object-top" alt="Banner" />
         </div>
         <Section>
           <div className="-mt-36 grid grid-cols-4 gap-8">
             <div>
-              <MovieCard
-                media={dbMedia}
-                rating={media.rating}
-                userActivity={media.userActivity}
-              />
+              <MovieCard media={dbMedia} rating={media.rating} userActivity={media.userActivity} />
             </div>
 
             <div className="col-span-3 mt-40">
@@ -127,7 +88,7 @@ export default async function ReviewPage({
 
               <div className="mt-8">
                 <ReviewBlock
-                  review={{ mediaId: media.apiId, ...reviewContent }}
+                  review={{ mediaId: media.apiId, ...reviewContent, userId: activity.user.id }}
                   reviewUser={activity.user}
                   date={postedDate}
                   media={dbMedia}
@@ -139,14 +100,10 @@ export default async function ReviewPage({
                 />
               </div>
 
-              <h2 className="mt-8 text-xl">
-                Comments ({reviewComments.length})
-              </h2>
+              <h2 className="mt-8 text-xl">Comments ({reviewComments.length})</h2>
               <Separator className="my-2 bg-white" />
               {reviewComments.map((comment) => {
-                const postedDate = DateTime.fromJSDate(
-                  comment.activity.createdAt,
-                ).toRelative();
+                const postedDate = DateTime.fromJSDate(comment.activity.createdAt).toRelative();
 
                 let ownComment = false;
                 if (user) {
@@ -166,11 +123,7 @@ export default async function ReviewPage({
                 );
               })}
 
-              {review.reviewComments.length === 0 && (
-                <p className="mb-12 mt-4 text-stone-400">
-                  No comments on this review
-                </p>
-              )}
+              {review.reviewComments.length === 0 && <p className="mb-12 mt-4 text-stone-400">No comments on this review</p>}
 
               {user && <ReviewCommentForm parentReviewId={review.activityId} />}
             </div>

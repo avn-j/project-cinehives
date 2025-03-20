@@ -8,32 +8,18 @@ import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { MOVIE_DB_IMG_PATH_PREFIX } from "@/lib/consts";
 import AverageMediaRating from "@/components/global/average-media-rating";
-import {
-  getAverageRatingForMedia,
-  getAllInteractionsForMedia,
-  getAllReviewsForMedia,
-  MediaDatabase,
-} from "@/lib/db-actions";
+import { getAverageRatingForMedia, getAllInteractionsForMedia, getAllReviewsForMedia, MediaDatabase } from "@/lib/db-actions";
 import { FaEye, FaHeart, FaList } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import ReviewBlock from "@/components/global/review-block";
 import { DateTime } from "luxon";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ReviewDialog from "@/components/global/buttons/review-dialog";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default async function FilmReviewsPage({
-  params,
-}: {
-  params: { mediaId: string };
-}) {
+export default async function FilmReviewsPage({ params }: { params: { mediaId: string } }) {
   const user = await getUser();
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
@@ -42,16 +28,7 @@ export default async function FilmReviewsPage({
 
   if (_apiResult.success === false) notFound();
 
-  const {
-    original_title,
-    id,
-    genres,
-    title,
-    production_companies,
-    runtime,
-    release_date,
-    backdrop_path,
-  } = _apiResult;
+  const { original_title, id, genres, title, production_companies, runtime, release_date, backdrop_path } = _apiResult;
 
   const media = await _buildAppDataForMedia(_apiResult);
 
@@ -80,26 +57,15 @@ export default async function FilmReviewsPage({
 
       <main>
         <div className="relative min-h-[600px]">
-          <Image
-            src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path}
-            layout="fill"
-            className="-z-10 object-cover object-top"
-            alt="Banner"
-          />
+          <Image src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path} layout="fill" className="-z-10 object-cover object-top" alt="Banner" />
         </div>
         <Section>
           <div className="-mt-36 grid grid-cols-4 gap-8">
             <div>
-              <MovieCard
-                media={dbMedia}
-                rating={media.rating}
-                userActivity={media.userActivity}
-              />
+              <MovieCard media={dbMedia} rating={media.rating} userActivity={media.userActivity} />
 
               <ReviewDialog media={dbMedia} watched={watched}>
-                <Button className="mt-4 w-full text-sm text-black">
-                  Write a Review
-                </Button>
+                <Button className="mt-4 w-full text-sm text-black">Write a Review</Button>
               </ReviewDialog>
 
               <div className="mt-10 flex gap-4">
@@ -113,10 +79,7 @@ export default async function FilmReviewsPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {watchedCount === 0 ? "No" : watchedCount}{" "}
-                        {watchedCount > 1 || watchedCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {watchedCount === 0 ? "No" : watchedCount} {watchedCount > 1 || watchedCount === 0 ? "users have " : "user has "}
                         watched this
                       </p>
                     </TooltipContent>
@@ -133,10 +96,7 @@ export default async function FilmReviewsPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {likeCount === 0 ? "No" : likeCount}{" "}
-                        {likeCount > 1 || likeCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {likeCount === 0 ? "No" : likeCount} {likeCount > 1 || likeCount === 0 ? "users have " : "user has "}
                         liked this
                       </p>
                     </TooltipContent>
@@ -153,10 +113,7 @@ export default async function FilmReviewsPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {watchlistCount === 0 ? "No" : watchlistCount}{" "}
-                        {watchlistCount > 1 || watchlistCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {watchlistCount === 0 ? "No" : watchlistCount} {watchlistCount > 1 || watchlistCount === 0 ? "users have " : "user has "}
                         this on their watchlist
                       </p>
                     </TooltipContent>
@@ -183,9 +140,7 @@ export default async function FilmReviewsPage({
 
                 <div className="mt-8">
                   <h3 className="font-semibold">Release Date</h3>
-                  <p className="mt-1 text-sm">
-                    {DateTime.fromISO(release_date).toFormat("DD")}
-                  </p>
+                  <p className="mt-1 text-sm">{DateTime.fromISO(release_date).toFormat("DD")}</p>
                 </div>
 
                 <div className="mt-8">
@@ -205,21 +160,15 @@ export default async function FilmReviewsPage({
             <div className="col-span-3 mt-40">
               <Link href={`/film/${id}`}>
                 <h1 className=" text-4xl font-bold">
-                  {title}{" "}
-                  {original_title !== title ? `(${original_title})` : ""}
+                  {title} {original_title !== title ? `(${original_title})` : ""}
                 </h1>
               </Link>
               <h2 className="mt-2 text-3xl"> ({release_date.split("-")[0]})</h2>
               <p className="mt-2 text-lg">Directed by {director.name}</p>
 
               <div className="mt-2 flex gap-2">
-                <p className="text-xl">
-                  {rating?._avg.rating && rating?._avg.rating}
-                </p>
-                <AverageMediaRating
-                  rating={rating?._avg.rating}
-                  count={rating?._count.rating}
-                />
+                <p className="text-xl">{rating?._avg.rating && rating?._avg.rating}</p>
+                <AverageMediaRating rating={rating?._avg.rating} count={rating?._count.rating} />
               </div>
 
               <div className="mt-16 flex items-center justify-between">
@@ -230,13 +179,9 @@ export default async function FilmReviewsPage({
 
               <Separator className="my-2 bg-stone-50" />
               <div className="flex flex-col gap-2">
-                {reviews?.length === 0 && (
-                  <p className="mt-3">No reviews yet for {media.title}</p>
-                )}
+                {reviews?.length === 0 && <p className="mt-3">No reviews yet for {media.title}</p>}
                 {reviews?.map((review, index) => {
-                  const postedDate = DateTime.fromJSDate(
-                    review.activity.createdAt,
-                  ).toFormat("DD");
+                  const postedDate = DateTime.fromJSDate(review.activity.createdAt).toFormat("DD");
 
                   let hasLiked = false;
                   if (user)
@@ -244,15 +189,10 @@ export default async function FilmReviewsPage({
                       return value.activity.user.id === user.id;
                     });
 
-                  const {
-                    relatedMedia,
-                    activity,
-                    reviewLikes,
-                    ...reviewContent
-                  } = review;
+                  const { relatedMedia, activity, reviewLikes, ...reviewContent } = review;
                   return (
                     <ReviewBlock
-                      review={{ mediaId: media.apiId, ...reviewContent }}
+                      review={{ mediaId: media.apiId, ...reviewContent, userId: activity.user.id }}
                       reviewUser={activity.user}
                       date={postedDate}
                       key={index}
@@ -264,11 +204,7 @@ export default async function FilmReviewsPage({
                     />
                   );
                 })}
-                {reviews?.length === 0 && (
-                  <p className="mt-8 text-stone-400">
-                    There are no reviews yet for {title}.
-                  </p>
-                )}
+                {reviews?.length === 0 && <p className="mt-8 text-stone-400">There are no reviews yet for {title}.</p>}
               </div>
             </div>
           </div>

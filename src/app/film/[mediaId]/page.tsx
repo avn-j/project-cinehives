@@ -3,12 +3,7 @@ import MovieCard from "@/components/global/movie-card";
 import Navbar from "@/components/global/navbar";
 import { getUser, getUserProfile } from "@/lib/authentication-functions";
 import { _buildAppDataForMedia } from "@/lib/media-data-builder";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { fetchMovieDetailsById } from "@/lib/moviedb-actions";
 import { Media, MediaType } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
@@ -28,21 +23,12 @@ import { Separator } from "@/components/ui/separator";
 import ReviewBlock from "@/components/global/review-block";
 import CastCarousel from "@/components/global/cast-carousel";
 import { DateTime } from "luxon";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ReviewDialog from "@/components/global/buttons/review-dialog";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default async function FilmPage({
-  params,
-}: {
-  params: { mediaId: string };
-}) {
+export default async function FilmPage({ params }: { params: { mediaId: string } }) {
   const user = await getUser();
   const profile = await getUserProfile(user);
   if (user && !profile) redirect("/account/setup");
@@ -50,18 +36,7 @@ export default async function FilmPage({
 
   if (_apiResult.success === false) notFound();
 
-  const {
-    original_title,
-    id,
-    genres,
-    overview,
-    title,
-    production_companies,
-    runtime,
-    release_date,
-    backdrop_path,
-    tagline,
-  } = _apiResult;
+  const { original_title, id, genres, overview, title, production_companies, runtime, release_date, backdrop_path, tagline } = _apiResult;
 
   const media = await _buildAppDataForMedia(_apiResult);
 
@@ -98,34 +73,20 @@ export default async function FilmPage({
 
       <main>
         <div className="relative min-h-[600px]">
-          <Image
-            src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path}
-            layout="fill"
-            className="-z-10 object-cover object-top"
-            alt="Banner"
-          />
+          <Image src={MOVIE_DB_IMG_PATH_PREFIX + backdrop_path} layout="fill" className="-z-10 object-cover object-top" alt="Banner" />
         </div>
         <Section>
           <div className="-mt-36 grid grid-cols-4 gap-8">
             <div>
-              <MovieCard
-                media={dbMedia}
-                rating={media.rating}
-                userActivity={media.userActivity}
-              />
+              <MovieCard media={dbMedia} rating={media.rating} userActivity={media.userActivity} />
 
               {user ? (
                 <ReviewDialog media={dbMedia} watched={watched}>
-                  <Button className="mt-4 w-full text-sm text-black">
-                    Write a Review
-                  </Button>
+                  <Button className="mt-4 w-full text-sm text-black">Write a Review</Button>
                 </ReviewDialog>
               ) : (
                 <Button className="mt-4 w-full px-0 py-0 text-black">
-                  <Link
-                    className="flex h-full w-full items-center justify-center text-sm"
-                    href="/login"
-                  >
+                  <Link className="flex h-full w-full items-center justify-center text-sm" href="/login">
                     Write a Review
                   </Link>
                 </Button>
@@ -142,10 +103,7 @@ export default async function FilmPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {watchedCount === 0 ? "No" : watchedCount}{" "}
-                        {watchedCount > 1 || watchedCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {watchedCount === 0 ? "No" : watchedCount} {watchedCount > 1 || watchedCount === 0 ? "users have " : "user has "}
                         watched this
                       </p>
                     </TooltipContent>
@@ -162,10 +120,7 @@ export default async function FilmPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {likeCount === 0 ? "No" : likeCount}{" "}
-                        {likeCount > 1 || likeCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {likeCount === 0 ? "No" : likeCount} {likeCount > 1 || likeCount === 0 ? "users have " : "user has "}
                         liked this
                       </p>
                     </TooltipContent>
@@ -182,10 +137,7 @@ export default async function FilmPage({
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="bg-accent">
                       <p>
-                        {watchlistCount === 0 ? "No" : watchlistCount}{" "}
-                        {watchlistCount > 1 || watchlistCount === 0
-                          ? "users have "
-                          : "user has "}
+                        {watchlistCount === 0 ? "No" : watchlistCount} {watchlistCount > 1 || watchlistCount === 0 ? "users have " : "user has "}
                         this on their watchlist
                       </p>
                     </TooltipContent>
@@ -212,9 +164,7 @@ export default async function FilmPage({
 
                 <div className="mt-8">
                   <h3 className="font-semibold">Release Date</h3>
-                  <p className="mt-1 text-sm">
-                    {DateTime.fromISO(release_date).toFormat("DD")}
-                  </p>
+                  <p className="mt-1 text-sm">{DateTime.fromISO(release_date).toFormat("DD")}</p>
                 </div>
 
                 <div className="mt-8">
@@ -240,10 +190,7 @@ export default async function FilmPage({
 
               <div className="mt-2 flex gap-2">
                 <p className="text-xl">{rating?._avg.rating?.toFixed(2)}</p>
-                <AverageMediaRating
-                  rating={rating?._avg.rating}
-                  count={rating?._count.rating}
-                />
+                <AverageMediaRating rating={rating?._avg.rating} count={rating?._count.rating} />
               </div>
 
               <h2 className="mt-10 text-lg font-bold">{tagline}</h2>
@@ -264,23 +211,19 @@ export default async function FilmPage({
                   <Separator className="my-2 bg-stone-50" />
                   <div className="flex flex-col gap-2">
                     {userReview?.map((review, index) => {
-                      const postedDate = DateTime.fromJSDate(
-                        review.activity.createdAt,
-                      ).toFormat("DD");
+                      const postedDate = DateTime.fromJSDate(review.activity.createdAt).toFormat("DD");
                       const hasLiked = review.reviewLikes.some((value) => {
                         return value.activity.user.id === user.id;
                       });
-                      const {
-                        relatedMedia,
-                        activity,
-                        reviewComments,
-                        reviewLikes,
-                        ...reviewContent
-                      } = review;
+                      const { relatedMedia, activity, reviewComments, reviewLikes, ...reviewContent } = review;
 
                       return (
                         <ReviewBlock
-                          review={{ mediaId: media.apiId, ...reviewContent }}
+                          review={{
+                            mediaId: media.apiId,
+                            ...reviewContent,
+                            userId: review.activity.user.id,
+                          }}
                           reviewUser={activity.user}
                           date={postedDate}
                           key={index}
@@ -308,16 +251,9 @@ export default async function FilmPage({
               <Separator className="my-2 bg-stone-50" />
               <div className="flex flex-col gap-2">
                 {recentReviews?.map((review, index) => {
-                  const postedDate = DateTime.fromJSDate(
-                    review.activity.createdAt,
-                  ).toFormat("DD");
+                  const postedDate = DateTime.fromJSDate(review.activity.createdAt).toFormat("DD");
 
-                  const {
-                    relatedMedia,
-                    activity,
-                    reviewLikes,
-                    ...reviewContent
-                  } = review;
+                  const { relatedMedia, activity, reviewLikes, ...reviewContent } = review;
 
                   let hasLiked = false;
                   if (user)
@@ -327,7 +263,11 @@ export default async function FilmPage({
 
                   return (
                     <ReviewBlock
-                      review={{ mediaId: relatedMedia.id, ...reviewContent }}
+                      review={{
+                        mediaId: relatedMedia.id,
+                        ...reviewContent,
+                        userId: activity.user.id,
+                      }}
                       reviewUser={activity.user}
                       date={postedDate}
                       key={index}
@@ -339,11 +279,7 @@ export default async function FilmPage({
                     />
                   );
                 })}
-                {recentReviews?.length === 0 && (
-                  <p className="mt-8 text-stone-400">
-                    There are no reviews yet for {title}.
-                  </p>
-                )}
+                {recentReviews?.length === 0 && <p className="mt-8 text-stone-400">There are no reviews yet for {title}.</p>}
               </div>
             </div>
           </div>

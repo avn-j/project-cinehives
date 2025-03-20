@@ -56,9 +56,7 @@ export async function getCinehivesMediaId(media: MediaDatabase) {
   return result.id;
 }
 
-export async function getCinehivesMediaIdsByApiIds(
-  medias: ApiIdWithMediaType[],
-) {
+export async function getCinehivesMediaIdsByApiIds(medias: ApiIdWithMediaType[]) {
   const promises = medias.map(async (media) => {
     const result = await prisma.media.findUnique({
       where: {
@@ -532,7 +530,6 @@ export async function fetchRecentFilmActivityRating() {
 }
 
 export async function getAverageRatingForMedia(media: MediaDatabase) {
-
   const mediaId = await getCinehivesMediaId(media);
   if (!mediaId) return;
 
@@ -577,12 +574,7 @@ export async function getAllInteractionsForMedia(media: MediaDatabase) {
   return interactions;
 }
 
-export async function createNewMediaReview(
-  values: z.infer<typeof reviewSchema>,
-  media: MediaDatabase,
-  rating: number | null,
-  liked: boolean,
-) {
+export async function createNewMediaReview(values: z.infer<typeof reviewSchema>, media: MediaDatabase, rating: number | null, liked: boolean) {
   const result = reviewSchema.safeParse(values);
 
   if (!result.success) throw Error(E.SCHEMA_PARSING_ERROR);
@@ -632,7 +624,7 @@ export async function updateMediaReview(
   rating: number | null,
   oldLiked: boolean,
   liked: boolean,
-  activityId: string,
+  activityId: string
 ) {
   const result = reviewSchema.safeParse(values);
 
@@ -959,10 +951,7 @@ export async function getReviewById(activityId: string) {
   return result;
 }
 
-export async function createNewReviewComment(
-  values: z.infer<typeof commentSchema>,
-  reviewId: string,
-) {
+export async function createNewReviewComment(values: z.infer<typeof commentSchema>, reviewId: string) {
   const parseResult = commentSchema.safeParse(values);
   if (!parseResult.success) throw Error(E.SCHEMA_PARSING_ERROR);
 
@@ -1020,7 +1009,7 @@ export async function createNewReviewCommentLike(commentId: string) {
 
 export async function deleteReviewCommentLike(commentId: string) {
   const user = await getUser();
-  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);;
+  if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
   const result = await prisma.userActivity.deleteMany({
     where: {
@@ -1105,12 +1094,7 @@ export async function getAllReviewsForMedia(media: MediaDatabase) {
   return result;
 }
 
-export async function createNewDiaryEntry(
-  values: z.infer<typeof loggedSchema>,
-  media: MediaDatabase,
-  rating: number,
-  liked: boolean,
-) {
+export async function createNewDiaryEntry(values: z.infer<typeof loggedSchema>, media: MediaDatabase, rating: number, liked: boolean) {
   const parseResult = loggedSchema.safeParse(values);
   if (!parseResult.success) throw Error(E.SCHEMA_PARSING_ERROR);
 
@@ -1195,19 +1179,17 @@ export async function getUserDiaryId() {
 }
 
 export async function getActivityForAllSeasons(parentApiId: number, seasons: any[]) {
-
   const user = await getUser();
   if (!user) throw Error(E.USER_AUTHENTICATION_ERROR);
 
-
-  if(seasons.length === 1) return null;
-  const seasonIds = seasons.map(season => season.id);
+  if (seasons.length === 1) return null;
+  const seasonIds = seasons.map((season) => season.id);
   const apiIdsAndMediaType: ApiIdWithMediaType[] = seasonIds.map((seasonId) => {
     return {
       apiId: seasonId,
       mediaType: "TV",
-    }
-  })
+    };
+  });
 
   const mediaIds = await getCinehivesMediaIdsByApiIds(apiIdsAndMediaType);
 
@@ -1221,9 +1203,9 @@ export async function getActivityForAllSeasons(parentApiId: number, seasons: any
     where: {
       mediaId: {
         in: mediaIds,
-      }
-    }
-  })
+      },
+    },
+  });
 
   const activityAndRating: any = {};
 
@@ -1239,14 +1221,12 @@ export async function getActivityForAllSeasons(parentApiId: number, seasons: any
     if (activity.mediaRating) {
       activityAndRating[activity.media.apiMovieDbId].rating = activity.mediaRating.rating;
     }
-  })
+  });
 
   return activityAndRating;
-
 }
 
 export async function getProfileByUsername(username: string) {
-
   const profileResult = await prisma.profile.findUnique({
     where: {
       username: username,
@@ -1258,15 +1238,15 @@ export async function getProfileByUsername(username: string) {
       username: true,
       country: true,
       profilePictureURL: true,
-    }
-  })
+    },
+  });
 
-  if(!profileResult) return null;
+  if (!profileResult) return null;
 
   const recentRatingActivity = await prisma.mediaActivity.findMany({
     orderBy: {
-      createdAt: "desc"
-    }, 
+      createdAt: "desc",
+    },
     where: {
       userId: profileResult?.id,
       activityType: "RATING",
@@ -1276,7 +1256,7 @@ export async function getProfileByUsername(username: string) {
       mediaRating: true,
     },
     take: 4,
-  })
+  });
 
   const userActivities = await prisma.profile.findUnique({
     where: {
@@ -1286,24 +1266,24 @@ export async function getProfileByUsername(username: string) {
       mediaLikes: {
         orderBy: {
           activity: {
-            createdAt: "desc"
+            createdAt: "desc",
           },
         },
         select: {
           relatedMedia: true,
-        }
+        },
       },
       mediaRatings: {
         orderBy: {
           activity: {
-            createdAt: "desc"
+            createdAt: "desc",
           },
         },
       },
       mediaReviews: {
         orderBy: {
           activity: {
-            createdAt: "desc"
+            createdAt: "desc",
           },
         },
         select: {
@@ -1313,17 +1293,17 @@ export async function getProfileByUsername(username: string) {
           rewatched: true,
           review: true,
           relatedMedia: true,
-        }
+        },
       },
       mediaWatchlisted: {
         orderBy: {
           activity: {
-            createdAt: "desc"
+            createdAt: "desc",
           },
         },
         select: {
           relatedMedia: true,
-        }
+        },
       },
       diary: {
         select: {
@@ -1339,14 +1319,14 @@ export async function getProfileByUsername(username: string) {
                   title: true,
                   mediaType: true,
                   relatedTVMedia: true,
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  })
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 
   const mediaWatched = await prisma.mediaWatched.findMany({
     where: {
@@ -1354,86 +1334,83 @@ export async function getProfileByUsername(username: string) {
     },
     include: {
       relatedMedia: true,
-    }
-  })
+    },
+  });
 
   let tvShowCount = 0;
   let filmCount = 0;
   let animeCount = 0;
 
   mediaWatched.forEach((media) => {
-    switch(media.relatedMedia.mediaType) {
+    switch (media.relatedMedia.mediaType) {
       case "ANIME":
         animeCount++;
         break;
       case "FILM":
         filmCount++;
         break;
-      case "TV": 
+      case "TV":
         tvShowCount++;
         break;
     }
   });
 
-  const ratingsArr = userActivities?.mediaRatings.map(mediaRating => mediaRating.rating);
-
-  console.log(userActivities?.mediaReviews);
-
+  const ratingsArr = userActivities?.mediaRatings.map((mediaRating) => mediaRating.rating);
 
   const count: any = {};
- 
-  if(ratingsArr) {
+
+  if (ratingsArr) {
     for (let ele of ratingsArr) {
-        if (count[ele]) {
-            count[ele] += 1;
-        } else {
-            count[ele] = 1;
-        }
+      if (count[ele]) {
+        count[ele] += 1;
+      } else {
+        count[ele] = 1;
+      }
     }
   }
 
   const ratingsData = [
     {
       name: "0.5",
-      count: count["0.5"] || 0
+      count: count["0.5"] || 0,
     },
     {
       name: "1",
-      count: count["1"] || 0
+      count: count["1"] || 0,
     },
     {
       name: "1.5",
-      count: count["1.5"] || 0
+      count: count["1.5"] || 0,
     },
     {
       name: "2",
-      count: count["2"] || 0
+      count: count["2"] || 0,
     },
     {
       name: "2.5",
-      count: count["2.5"] || 0
+      count: count["2.5"] || 0,
     },
     {
       name: "3",
-      count: count["3"] || 0
+      count: count["3"] || 0,
     },
     {
       name: "3.5",
-      count: count["3.5"] || 0
+      count: count["3.5"] || 0,
     },
     {
       name: "4",
-      count: count["4"] || 0
+      count: count["4"] || 0,
     },
     {
       name: "4.5",
-      count: count["4.5"] || 0
+      count: count["4.5"] || 0,
     },
     {
       name: "5",
-      count: count["5"] || 0
+      count: count["5"] || 0,
     },
-  ]
+  ];
 
   const recentlyWatchlisted = userActivities?.mediaWatchlisted.slice(0, 5);
   const recentlyLiked = userActivities?.mediaLikes.slice(0, 5);
@@ -1455,6 +1432,6 @@ export async function getProfileByUsername(username: string) {
     recentlyLiked: recentlyLiked,
     recentDiary: recentDiary,
     ratingsData: ratingsData,
-    recentReviews: recentReviews
+    recentReviews: recentReviews,
   };
 }
